@@ -52,6 +52,7 @@ Frequency domain analysis, FFT algorithms, and time-frequency representations.
 - `spectral_leakage_and_windowing.md` — Windowing effects, scallop loss, spectral resolution
 - `power_spectral_density.md` — Welch's method, periodogram, autocorrelation techniques
 - `stft_and_time_frequency.md` — Short-time Fourier transform, spectrograms, time-frequency uncertainty
+- `multitaper_and_parametric_methods.md` — Thomson multitaper, AR/MA models, MUSIC, ESPRIT, super-resolution
 - `worked_problems/` — Three problems on FFT butterflies, spectral resolution, and overlap-add/save methods
 
 ### 04 Adaptive and Statistical Methods
