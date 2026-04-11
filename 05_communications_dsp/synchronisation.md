@@ -29,7 +29,7 @@ Determines the start of a data packet or frame within the received bit stream. W
 **Performance requirements (typical):**
 - Timing: $|\epsilon| < 0.05 T_s$ for QAM systems
 - Frequency: $|\delta f| < 0.01 \Delta f$ for OFDM; $< 100$ Hz for narrowband coherent PSK
-- Phase: $|\phi| < 5°$–$10°$ for 16-QAM; $< 2°$ for 64-QAM
+- Phase: $|\phi| < 5°\text{–}10°$ for 16-QAM; $< 2°$ for 64-QAM
 
 ---
 
@@ -70,7 +70,7 @@ $$\delta f = f_{TX} - f_{RX}$$
 
 1. **Crystal oscillator tolerance**: Oscillators have a specified frequency accuracy in parts per million (ppm). A 10 ppm tolerance at 2.4 GHz gives $\delta f$ up to $\pm 24$ kHz. Two devices each with 10 ppm tolerance could have a relative offset of 48 kHz.
 
-2. **Temperature drift**: Crystal frequency varies with temperature (typically $\pm 2$–$5$ ppm/$°C$).
+2. **Temperature drift**: Crystal frequency varies with temperature (typically $\pm 2\text{–}5$ ppm/$°C$).
 
 3. **Doppler shift**: A mobile transmitter or receiver moving at velocity $v$ relative to the line of sight causes:
    $$f_D = \frac{v}{c} f_c$$

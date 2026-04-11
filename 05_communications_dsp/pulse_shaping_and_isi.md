@@ -95,7 +95,7 @@ $$B_{RC} = \frac{1 + \alpha}{2T_s}$$
 
 - $\alpha = 0$: Minimum bandwidth $B = 1/(2T_s)$ but ideal sinc — impractical
 - $\alpha = 1$: Double the minimum bandwidth, very smooth roll-off
-- Typical values: $\alpha = 0.2$–$0.5$ in practice
+- Typical values: $\alpha = 0.2\text{–}0.5$ in practice
 
 **Spectral efficiency:**
 
@@ -213,11 +213,11 @@ Even if $H_{TX}(f) \cdot H_{RX}(f) = P_{RC}(f)$ satisfies Nyquist, $P_{eff}(f)$ 
 
 **Answer:**
 
-**Step 1 — Determine roll-off factor $\alpha$:** Chosen based on available bandwidth and timing margin requirements. Typical: $\alpha = 0.25$–$0.35$ for wireless systems.
+**Step 1 — Determine roll-off factor $\alpha$:** Chosen based on available bandwidth and timing margin requirements. Typical: $\alpha = 0.25\text{–}0.35$ for wireless systems.
 
-**Step 2 — Choose oversampling factor $L$:** Number of samples per symbol. Typical: $L = 4$–$8$. Higher $L$ allows more filter taps for the same relative delay.
+**Step 2 — Choose oversampling factor $L$:** Number of samples per symbol. Typical: $L = 4\text{–}8$. Higher $L$ allows more filter taps for the same relative delay.
 
-**Step 3 — Choose filter span $N_{span}$:** Number of symbol periods captured by the filter impulse response, symmetric around $t = 0$. Typical: $N_{span} = 6$–$12$ symbols. Total taps: $N = N_{span} \cdot L + 1$ (odd for symmetric FIR).
+**Step 3 — Choose filter span $N_{span}$:** Number of symbol periods captured by the filter impulse response, symmetric around $t = 0$. Typical: $N_{span} = 6\text{–}12$ symbols. Total taps: $N = N_{span} \cdot L + 1$ (odd for symmetric FIR).
 
 **Step 4 — Compute coefficients:** Sample the analytical RRC impulse response at $t = nT_s/L$ for $n = -N_{span}L/2, \ldots, N_{span}L/2$.
 

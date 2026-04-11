@@ -224,6 +224,6 @@ For $N_{span} = 6$ and $\alpha = 0.35$: $\epsilon_{ISI} \approx -50$ dB — acce
 | Roll-off $\alpha$ | 0.2–0.35 for bandwidth-limited; 0.5 for ease of implementation | Trade bandwidth for timing margin |
 | Filter span $N_{span}$ | 6–10 symbols | Beyond 8 symbols, residual ISI $< -60$ dB |
 | Oversampling $L$ | 4 minimum, 8 preferred | Higher $L$ more accurately approximates ideal frequency response |
-| Windowing | Kaiser ($\beta = 6$–$8$) on RRC coefficients | Reduces spectral sidelobe leakage from truncation |
+| Windowing | Kaiser ($\beta = 6\text{–}8$) on RRC coefficients | Reduces spectral sidelobe leakage from truncation |
 
 **Key take-away:** The raised cosine is not a single filter but a design constraint on the overall system. The RRC factorisation achieves simultaneously: (1) zero ISI through the Nyquist criterion, (2) maximum SNR through matched filtering, and (3) spectral containment by limiting bandwidth to $(1+\alpha)/T_s$.

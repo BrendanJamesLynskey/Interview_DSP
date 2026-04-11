@@ -116,7 +116,7 @@ $$N_{used,max} = \frac{20\, \text{MHz}}{15\, \text{kHz}} \approx 1333\, \text{su
 
 However, we must reserve:
 - **DC subcarrier**: 1 subcarrier at $f = 0$ (set to zero to avoid LO leakage problems)
-- **Edge guard subcarriers**: Sufficient null subcarriers on each side to allow the spectral mask to be met by a practical transmit filter. Typically $5\%$–$10\%$ of the used bandwidth on each side.
+- **Edge guard subcarriers**: Sufficient null subcarriers on each side to allow the spectral mask to be met by a practical transmit filter. Typically $5\%\text{–}10\%$ of the used bandwidth on each side.
 
 For a 20 MHz channel with 10% guard on each edge: $0.10 \times 1333 / 2 \approx 67$ subcarriers per side.
 
@@ -141,7 +141,7 @@ Following LTE-style comb pilot structure (every 6th subcarrier is a pilot, 2 OFD
 
 $$N_{pilot} = \frac{N_{used}}{6} \times \frac{2}{14} \approx \frac{1200}{6} \times \frac{2}{14} = 200 \times 0.143 \approx 29\, \text{pilots/symbol on average}$$
 
-More precisely: in LTE PDSCH, approximately $12\%$–$15\%$ of resource elements are reference signals. Let us use $15\%$:
+More precisely: in LTE PDSCH, approximately $12\%\text{–}15\%$ of resource elements are reference signals. Let us use $15\%$:
 
 $$N_{data} = 0.85 \times 1200 = 1020\, \text{data subcarriers per OFDM symbol}$$
 

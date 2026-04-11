@@ -218,7 +218,7 @@ MMSE MSE is lower than LS by a factor that depends on SNR and channel coherence 
 | Guard subcarriers (DC + edges) | 12 | Null DC (LO leakage) + spectral mask compliance |
 | Subcarrier spacing $\Delta f$ | 312.5 kHz | $= 20$ MHz$/64$ |
 | OFDM symbol duration $T$ | 3.2 µs | $= 1/\Delta f$ |
-| Cyclic prefix duration $T_{CP}$ | 0.8 µs | $= T/4$; covers indoor delay spread $\leq 50$–$100$ ns |
+| Cyclic prefix duration $T_{CP}$ | 0.8 µs | $= T/4$; covers indoor delay spread $\leq 50\text{–}100$ ns |
 | Total symbol period $T_{sym}$ | 4.0 µs | $T + T_{CP}$ |
 | Modulations supported | BPSK, QPSK, 16-QAM, 64-QAM | Adaptive coding and modulation |
 | Channel bandwidth | 20 MHz | 5 GHz ISM band allocation |
@@ -237,7 +237,7 @@ MMSE MSE is lower than LS by a factor that depends on SNR and channel coherence 
 
 $$N_{CP} \cdot T_{samp} \geq \tau_{max,RMS} \cdot k_{margin}$$
 
-where $\tau_{max,RMS}$ is the RMS delay spread, $k_{margin} \approx 3$–$5$ for 99.99th percentile coverage, and $T_{samp} = 1/f_s$ is the sampling period.
+where $\tau_{max,RMS}$ is the RMS delay spread, $k_{margin} \approx 3\text{–}5$ for 99.99th percentile coverage, and $T_{samp} = 1/f_s$ is the sampling period.
 
 **System trade-offs:**
 

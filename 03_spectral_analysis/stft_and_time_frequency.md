@@ -162,7 +162,7 @@ perfect reconstruction $\hat{x}[n] = x[n]$ is achieved.
 **Answer.**
 
 **Application context.** Speech has two types of structure that require conflicting resolutions:
-- **Pitch harmonics**: closely spaced sinusoids at multiples of the fundamental frequency $F_0 \approx 100$–$300$ Hz. Need $\Delta f < F_0$, i.e., $\Delta f < 100$ Hz to resolve individual harmonics.
+- **Pitch harmonics**: closely spaced sinusoids at multiples of the fundamental frequency $F_0 \approx 100\text{–}300$ Hz. Need $\Delta f < F_0$, i.e., $\Delta f < 100$ Hz to resolve individual harmonics.
 - **Formant transitions**: rapid changes in spectral envelope as the vocal tract moves. Formant transitions can occur in $< 20$ ms. Need $\Delta t < 20$ ms.
 
 **Example: choosing window length for speech at $f_s = 16000$ Hz.**

@@ -43,7 +43,7 @@ Pattern detector / SIMD logic
 | Accumulate only | Bypass multiplier | Accumulators, counters |
 | SIMD (dual 24-bit add) | SIMD mode | Pipelined summation |
 
-**Efficiency advantage:** A single DSP slice uses $\approx 1/8$ the LUTs of an equivalent LUT-based multiplier and runs $2 \times$–$3 \times$ faster. For a 64-tap FIR, this means 64 DSP slices versus $\approx 1500$ LUTs — a major fabric saving.
+**Efficiency advantage:** A single DSP slice uses $\approx 1/8$ the LUTs of an equivalent LUT-based multiplier and runs $2 \times\text{–}3 \times$ faster. For a 64-tap FIR, this means 64 DSP slices versus $\approx 1500$ LUTs — a major fabric saving.
 
 ---
 
@@ -129,7 +129,7 @@ Clock domain crossing occurs when a signal produced in one clock domain (with cl
 
 $$P_{meta}(t) \propto e^{-t_{resolve}/\tau_{meta}}$$
 
-where $\tau_{meta} \approx 50$–$100$ ps for modern FPGAs.
+where $\tau_{meta} \approx 50\text{–}100$ ps for modern FPGAs.
 
 **DSP CDC scenarios:**
 
