@@ -11,6 +11,8 @@
 //   N_TAPS      : Number of filter taps (coefficients).  Must be >= 1.
 //   DATA_WIDTH  : Bit width of the input and output data (signed).
 //   COEF_WIDTH  : Bit width of each coefficient (signed).
+//   COEF_FRAC   : Fractional bits in each coefficient (default COEF_WIDTH-1,
+//                 i.e. Q1.15 for 16-bit coefficients: 16384 = 0.5).
 //   SYMMETRIC   : 1 = exploit coefficient symmetry to halve multipliers
 //                 (valid only when N_TAPS is odd and coefficients are
 //                  symmetric about the centre tap).
@@ -20,18 +22,23 @@
 // -----------------------
 //   Input / output : Q(DATA_WIDTH-1).0  (i.e., full-precision integers, or
 //                    interpret as Q1.(DATA_WIDTH-1) for fractional use).
-//   Coefficients   : Q(COEF_WIDTH-1).0
-//   Internal acc.  : DATA_WIDTH + COEF_WIDTH + clog2(N_TAPS) bits to prevent
-//                    overflow before the final rounding truncation.
+//   Coefficients   : Q(COEF_WIDTH-COEF_FRAC).COEF_FRAC, Q1.15 by default
+//   Internal acc.  : DATA_WIDTH + COEF_WIDTH + 1 + clog2(N_TAPS) + 1 bits, so
+//                    nothing can overflow before the output stage.
+//   Output         : acc >>> COEF_FRAC, rounded half-up and saturated to
+//                    DATA_WIDTH. The output is in the same format as the input,
+//                    so a filter with unity DC gain passes DC unchanged.
 //
 // Pipeline stages
 // ---------------
 //   Stage 0 : Input registration (sample shift register)
 //   Stage 1 : Multiply each delayed sample by its coefficient
-//   Stage 2 : Adder tree (log2 levels, each adds one pipeline stage)
-//   Stage 3 : Output registration and truncation to DATA_WIDTH
+//             (SYMMETRIC=1 adds one pre-add register before the multiply)
+//   Stage 2 : Adder tree (ceil(log2(N_TAPS)) + 1 registered levels)
+//   Stage 3 : Output registration, rounding and saturation to DATA_WIDTH
 //
-// Total latency = 1 + 1 + ceil(log2(N_TAPS)) + 1  clock cycles.
+// Total latency = 1 + 1 + (ceil(log2(N_TAPS)) + 1) + 1  clock cycles,
+// plus 1 when SYMMETRIC=1.
 //
 // Synthesis notes
 // ---------------
@@ -57,6 +64,7 @@ module fir_filter #(
     parameter int unsigned N_TAPS     = 8,
     parameter int unsigned DATA_WIDTH = 16,
     parameter int unsigned COEF_WIDTH = 16,
+    parameter int unsigned COEF_FRAC  = COEF_WIDTH - 1,  // Q1.15 coefficients
     parameter bit          SYMMETRIC  = 1'b0   // set 1 for symmetric optimisation
 ) (
     input  wire                        clk,
@@ -76,10 +84,11 @@ module fir_filter #(
     // -----------------------------------------------------------------------
     // Internal width calculations
     // -----------------------------------------------------------------------
-    // Product width: DATA_WIDTH + COEF_WIDTH (full precision, no truncation).
+    // Product width: DATA_WIDTH + COEF_WIDTH, plus 1 because the symmetric
+    // form multiplies a (DATA_WIDTH+1)-bit pre-sum (full precision, no truncation).
     // Accumulator width: add log2(N_TAPS) guard bits for the adder tree.
     localparam int ACC_EXTRA  = $clog2(N_TAPS);          // guard bits
-    localparam int PROD_WIDTH = DATA_WIDTH + COEF_WIDTH;
+    localparam int PROD_WIDTH = DATA_WIDTH + COEF_WIDTH + 1;
     localparam int ACC_WIDTH  = PROD_WIDTH + ACC_EXTRA;
 
     // -----------------------------------------------------------------------
@@ -128,14 +137,15 @@ module fir_filter #(
             // before multiplication.  Width = DATA_WIDTH + 1 for the addition.
             logic signed [DATA_WIDTH:0] pre_sum [0:HALF-1];
             logic signed [DATA_WIDTH-1:0] centre_tap_reg;
+            logic                         valid_pre;   // pre-add stage valid
 
             always_ff @(posedge clk) begin
                 if (!rst_n) begin
                     for (int k = 0; k < HALF; k++) pre_sum[k] <= '0;
                     if (N_TAPS % 2 == 1) centre_tap_reg <= '0;
-                    valid_s1 <= 1'b0;
+                    valid_pre <= 1'b0;
                 end else begin
-                    valid_s1 <= valid_s0;
+                    valid_pre <= valid_s0;
                     // Pre-add: sum the two input samples that share a coefficient
                     for (int k = 0; k < HALF; k++) begin
                         pre_sum[k] <= {{1{shift_reg[k][DATA_WIDTH-1]}}, shift_reg[k]}
@@ -154,15 +164,21 @@ module fir_filter #(
             // products[HALF+1 ..]   = 0  (unused, will be optimised away)
             logic signed [PROD_WIDTH-1:0] sym_prods [0:HALF];
 
+            // Registered multipliers (DSP). The pre-add register above is an
+            // extra pipeline stage, so valid is delayed once more here.
             always_ff @(posedge clk) begin
-                // This stage is combinational within the multiply always_ff;
-                // synthesis sees these as registered multipliers (DSP).
-                // Blocking within a clocked block is fine for structural intent.
-                for (int k = 0; k < HALF; k++)
-                    sym_prods[k] <= pre_sum[k] * $signed({{1{coef[k][COEF_WIDTH-1]}},
-                                                           coef[k]});
-                if (N_TAPS % 2 == 1)
-                    sym_prods[HALF] <= centre_tap_reg * coef[HALF];
+                if (!rst_n) begin
+                    for (int k = 0; k <= HALF; k++) sym_prods[k] <= '0;
+                    valid_s1 <= 1'b0;
+                end else begin
+                    valid_s1 <= valid_pre;
+                    for (int k = 0; k < HALF; k++)
+                        sym_prods[k] <= pre_sum[k] * coef[k];
+                    if (N_TAPS % 2 == 1)
+                        sym_prods[HALF] <= centre_tap_reg * coef[HALF];
+                    else
+                        sym_prods[HALF] <= '0;
+                end
             end
 
             // Fill the products array used by the adder tree below.
@@ -255,13 +271,18 @@ module fir_filter #(
     wire signed [TREE_WIDTH-1:0] acc = tree[TREE_LEVELS][0];
 
     // -----------------------------------------------------------------------
-    // Stage 3 — Output registration and truncation
+    // Stage 3 — Output registration, rounding and saturation
     // -----------------------------------------------------------------------
-    // Truncate (round-towards-zero) the accumulator to DATA_WIDTH.
-    // A production design would implement convergent rounding; here we use
-    // simple truncation of the LSBs and saturation of overflow.
+    // The accumulator carries COEF_FRAC fractional bits from the coefficients.
+    // Round half-up (add 0.5 LSB, then arithmetic shift), then saturate to
+    // DATA_WIDTH. A production design might use convergent rounding instead.
 
-    localparam int SHIFT = TREE_WIDTH - DATA_WIDTH;   // bits to discard
+    localparam logic signed [TREE_WIDTH-1:0] ROUND_HALF =
+        (COEF_FRAC > 0) ? (TREE_WIDTH'(1) <<< (COEF_FRAC - 1)) : '0;
+    localparam logic signed [TREE_WIDTH-1:0] OUT_MAX =  (TREE_WIDTH'(1) <<< (DATA_WIDTH-1)) - 1;
+    localparam logic signed [TREE_WIDTH-1:0] OUT_MIN = -(TREE_WIDTH'(1) <<< (DATA_WIDTH-1));
+
+    wire signed [TREE_WIDTH-1:0] acc_scaled = (acc + ROUND_HALF) >>> COEF_FRAC;
 
     always_ff @(posedge clk) begin
         if (!rst_n) begin
@@ -270,18 +291,12 @@ module fir_filter #(
         end else begin
             valid_out <= tree_valid[TREE_LEVELS];
 
-            // Saturation: if upper (SHIFT+1) bits are not all the same sign,
-            // the result has overflowed.
-            if (acc[TREE_WIDTH-1 -: SHIFT+1] == {(SHIFT+1){1'b0}} ||
-                acc[TREE_WIDTH-1 -: SHIFT+1] == {(SHIFT+1){1'b1}}) begin
-                // No overflow: extract the DATA_WIDTH most-significant bits
-                // (skipping the guard bits used for overflow detection).
-                data_out <= acc[TREE_WIDTH-1 -: DATA_WIDTH];
-            end else begin
-                // Overflow: saturate to max/min signed value.
-                data_out <= acc[TREE_WIDTH-1] ? {1'b1, {(DATA_WIDTH-1){1'b0}}}   // MIN
-                                              : {1'b0, {(DATA_WIDTH-1){1'b1}}};  // MAX
-            end
+            if (acc_scaled > OUT_MAX)
+                data_out <= {1'b0, {(DATA_WIDTH-1){1'b1}}};   // saturate to MAX
+            else if (acc_scaled < OUT_MIN)
+                data_out <= {1'b1, {(DATA_WIDTH-1){1'b0}}};   // saturate to MIN
+            else
+                data_out <= acc_scaled[DATA_WIDTH-1:0];
         end
     end
 
@@ -296,13 +311,18 @@ endmodule
 //   - Stopband sinusoid (0.45 * Fs): should be attenuated.
 //   - White-noise-like pseudo-random input: checks no overflow/X.
 //
-// Coefficient set (Q15, scaled to 16-bit signed):
+// Coefficient set (Q1.15, 16384 = 0.5):
 //   h = [  -821,      0,   9175,  16384,   9175,      0,  -821 ]
-// These are a 7-tap Hamming-windowed sinc LPF with fc = 0.25*Fs.
+// A 7-tap windowed-sinc half-band LPF (fc = 0.25*Fs), DC gain = 1.005.
 //
-// Expected behaviour:
-//   - Passband (0.1 Fs) tone: output amplitude ~= input amplitude after settling.
-//   - Stopband (0.45 Fs) tone: output amplitude significantly attenuated.
+// Expected behaviour (|H| from the coefficients):
+//   - Passband (0.1 Fs) tone: |H| = 0.969 -> 7752 LSB amplitude for 8000 in.
+//     With a 3-sample group delay the samples never land on the crest: the
+//     largest sampled output is 7752 * sin(72 deg) ~= 7372 LSB.
+//   - Stopband (0.45 Fs) tone: |H| = 0.004 -> a few tens of LSB.
+//
+// Run with SYMMETRIC=1 as well (e.g. verilator -GSYMMETRIC=1) to exercise
+// the pre-add / shared-multiplier form; results must match.
 // =============================================================================
 
 `timescale 1ns / 1ps
@@ -315,7 +335,7 @@ module fir_filter_tb;
     localparam int N_TAPS     = 7;
     localparam int DATA_WIDTH = 16;
     localparam int COEF_WIDTH = 16;
-    localparam bit SYMMETRIC  = 1'b0;   // test direct-form path
+    parameter  bit SYMMETRIC  = 1'b0;   // 0 = direct form, 1 = symmetric form
 
     localparam real CLK_PERIOD = 10.0;  // 100 MHz
 
@@ -353,8 +373,8 @@ module fir_filter_tb;
 
     // -----------------------------------------------------------------------
     // Coefficient initialisation
-    // 7-tap Hamming-windowed LPF, fc = 0.25 * Fs
-    // Scaled to Q1.15 (multiply by 2^14 and round)
+    // 7-tap windowed-sinc LPF, fc = 0.25 * Fs
+    // Q1.15: multiply by 2^15 and round
     // -----------------------------------------------------------------------
     initial begin
         coef[0] = -16'd821;
@@ -370,7 +390,7 @@ module fir_filter_tb;
     // Stimulus + checking tasks
     // -----------------------------------------------------------------------
 
-    // Apply one sample and return the output (or 0 if not valid this cycle)
+    // Apply one sample: valid_in high for one cycle, then one idle cycle
     task automatic apply_sample(input logic signed [DATA_WIDTH-1:0] sample);
         @(posedge clk);
         #1;                   // setup time margin
@@ -381,59 +401,46 @@ module fir_filter_tb;
         valid_in <= 1'b0;
     endtask
 
-    // Measure output peak after warmup
+    // Output monitor: tracks the peak |data_out| of every valid output while
+    // `measuring` is set. Sampling at the clock edge (rather than at a fixed
+    // point in apply_sample) makes the check independent of pipeline latency.
+    bit   measuring = 1'b0;
+    real  peak_abs;
+
+    always @(posedge clk) begin
+        if (measuring && valid_out) begin
+            if ($itor($signed(data_out)) > peak_abs)  peak_abs =  $itor($signed(data_out));
+            if (-$itor($signed(data_out)) > peak_abs) peak_abs = -$itor($signed(data_out));
+        end
+    end
+
     real  out_peak_pass;
     real  out_peak_stop;
-    int   sample_count;
 
-    int   WARMUP    = N_TAPS + $clog2(N_TAPS) + 3;  // pipeline depth
+    int   WARMUP    = N_TAPS + $clog2(N_TAPS) + 5;  // pipeline depth, in samples
     int   MEAS_SAMP = 200;
 
-    // Passband measurement
-    task automatic measure_passband;
-        real  acc;
+    // Drive a tone at freq (cycles/sample) and return the steady-state peak
+    task automatic measure_tone(input real freq, output real peak);
         logic signed [DATA_WIDTH-1:0] s;
-        // Warmup
-        for (int i = 0; i < WARMUP + 20; i++) begin
-            s = $signed(16'(shortint'(8000.0 * $sin(2.0 * 3.14159265 * 0.1 * i))));
-            apply_sample(s);
-        end
-        // Measure peak over MEAS_SAMP samples
-        acc = 0.0;
-        for (int i = 0; i < MEAS_SAMP; i++) begin
-            s = $signed(16'(shortint'(8000.0 * $sin(2.0 * 3.14159265 * 0.1 * (WARMUP+20+i)))));
-            apply_sample(s);
-            if (valid_out) begin
-                if ($itor($signed(data_out)) > acc) acc = $itor($signed(data_out));
+        for (int i = 0; i < WARMUP + 20 + MEAS_SAMP; i++) begin
+            s = DATA_WIDTH'($rtoi(8000.0 * $sin(2.0 * 3.14159265358979 * freq * i)));
+            if (i == WARMUP + 20) begin
+                peak_abs  = 0.0;
+                measuring = 1'b1;
             end
-        end
-        out_peak_pass = acc;
-    endtask
-
-    // Stopband measurement
-    task automatic measure_stopband;
-        real  acc;
-        logic signed [DATA_WIDTH-1:0] s;
-        for (int i = 0; i < WARMUP + 20; i++) begin
-            s = $signed(16'(shortint'(8000.0 * $sin(2.0 * 3.14159265 * 0.45 * i))));
             apply_sample(s);
         end
-        acc = 0.0;
-        for (int i = 0; i < MEAS_SAMP; i++) begin
-            s = $signed(16'(shortint'(8000.0 * $sin(2.0 * 3.14159265 * 0.45 * (WARMUP+20+i)))));
-            apply_sample(s);
-            if (valid_out) begin
-                if ($itor($signed(data_out)) > acc) acc = $itor($signed(data_out));
-            end
-        end
-        out_peak_stop = acc;
+        repeat (2 * WARMUP) @(posedge clk);   // let the last outputs drain
+        measuring = 1'b0;
+        peak = peak_abs;
     endtask
 
     // -----------------------------------------------------------------------
     // Main test sequence
     // -----------------------------------------------------------------------
     initial begin
-        $display("=== FIR Filter Testbench Start ===");
+        $display("=== FIR Filter Testbench Start (SYMMETRIC=%0d) ===", SYMMETRIC);
 
         // Reset
         rst_n = 0;
@@ -443,10 +450,10 @@ module fir_filter_tb;
 
         // ---- Test 1: Passband tone (0.1 * Fs) ----
         $display("[TEST 1] Passband tone: f = 0.1*Fs, amplitude = 8000 LSB");
-        measure_passband();
+        measure_tone(0.1, out_peak_pass);
         $display("  Peak output = %0.1f LSB", out_peak_pass);
-        if (out_peak_pass > 5000.0) begin
-            $display("  PASS: passband passes signal (peak > 5000)");
+        if (out_peak_pass > 7300.0 && out_peak_pass < 7800.0) begin
+            $display("  PASS: passband gain ~0.97 (7300 < sampled peak < 7800)");
         end else begin
             $display("  FAIL: passband output too low (peak = %0.1f)", out_peak_pass);
             $finish;
@@ -454,10 +461,10 @@ module fir_filter_tb;
 
         // ---- Test 2: Stopband tone (0.45 * Fs) ----
         $display("[TEST 2] Stopband tone: f = 0.45*Fs, amplitude = 8000 LSB");
-        measure_stopband();
+        measure_tone(0.45, out_peak_stop);
         $display("  Peak output = %0.1f LSB", out_peak_stop);
-        if (out_peak_stop < 1500.0) begin
-            $display("  PASS: stopband attenuates signal (peak < 1500)");
+        if (out_peak_stop < 200.0) begin
+            $display("  PASS: stopband attenuates signal (peak < 200)");
         end else begin
             $display("  FAIL: stopband output too high (peak = %0.1f)", out_peak_stop);
             $finish;

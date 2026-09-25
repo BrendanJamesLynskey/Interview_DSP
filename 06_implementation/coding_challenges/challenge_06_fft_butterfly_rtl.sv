@@ -330,6 +330,8 @@ module fft_butterfly_tb;
         input real exp_qr, exp_qi,             // expected Q (float)
         input string test_name
     );
+        logic signed [DW-1:0] exp_pr_q, exp_pi_q, exp_qr_q, exp_qi_q;
+
         // Convert to fixed-point
         a_re = to_q14(ar); a_im = to_q14(ai);
         b_re = to_q14(br); b_im = to_q14(bi);
@@ -341,8 +343,8 @@ module fft_butterfly_tb;
         @(posedge clk); #1;
         valid_in = 1'b0;
 
-        // Wait 2 pipeline stages
-        @(posedge clk); #1;
+        // valid_in was sampled on the edge just passed (stage 0), so one more
+        // edge completes stage 1. valid_out is a one-cycle pulse: check it now.
         @(posedge clk); #1;
 
         // Check valid
@@ -353,7 +355,6 @@ module fft_butterfly_tb;
         end
 
         // Convert expected to Q1.14
-        logic signed [DW-1:0] exp_pr_q, exp_pi_q, exp_qr_q, exp_qi_q;
         exp_pr_q = to_q14(exp_pr);
         exp_pi_q = to_q14(exp_pi);
         exp_qr_q = to_q14(exp_qr);
