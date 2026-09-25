@@ -59,7 +59,7 @@ $$\boxed{P_b^{BPSK} = Q\!\left(\sqrt{\frac{2E_b}{N_0}}\right)}$$
 
 ### Physical Interpretation
 
-The argument $\sqrt{2E_b/N_0}$ is the **distance between the symbols** ($2\sqrt{E_b}$) divided by **twice the noise standard deviation** ($\sqrt{2 N_0/2} = \sqrt{N_0}$):
+The argument $\sqrt{2E_b/N_0}$ is the **distance between the symbols** ($2\sqrt{E_b}$) divided by **twice the noise standard deviation** ($2\sqrt{N_0/2} = \sqrt{2N_0}$):
 
 $$\sqrt{\frac{2E_b}{N_0}} = \frac{2\sqrt{E_b}}{2 \cdot \sqrt{N_0/2}} = \frac{d_{min}}{2\sigma}$$
 
@@ -150,15 +150,15 @@ $$P_b^{PAM-4} = \frac{3}{4} Q\!\left(\frac{d}{\sigma}\right) = \frac{3}{4} Q\!\l
 
 Substituting $d^2 = 2E_b/5$:
 
-$$P_b^{PAM-4} = \frac{3}{4} Q\!\left(\sqrt{\frac{4E_b}{5 N_0}}\right) = \frac{3}{4} Q\!\left(\sqrt{\frac{4}{5} \cdot \frac{2E_b}{N_0}}\right)$$
+$$P_b^{PAM-4} = \frac{3}{4} Q\!\left(\sqrt{\frac{4E_b}{5 N_0}}\right) = \frac{3}{4} Q\!\left(\sqrt{\frac{2}{5} \cdot \frac{2E_b}{N_0}}\right)$$
 
 ### 16-QAM BER (Gray coded)
 
 The 16-QAM BER is the average BER of the I and Q PAM-4 branches, which are identical:
 
-$$\boxed{P_b^{16\text{-QAM}} = \frac{3}{4} Q\!\left(\sqrt{\frac{8E_b}{5 N_0}}\right)}$$
+$$\boxed{P_b^{16\text{-QAM}} = \frac{3}{4} Q\!\left(\sqrt{\frac{4E_b}{5 N_0}}\right)}$$
 
-Note: The argument $\sqrt{8/(5 N_0) \cdot E_b} = \sqrt{(8/5)} \cdot \sqrt{E_b/N_0}$ compared to $\sqrt{2} \cdot \sqrt{E_b/N_0}$ for BPSK — the factor $\sqrt{8/5}/\sqrt{2} = \sqrt{4/5} \approx 0.894$ represents the reduced normalised distance in 16-QAM due to the more tightly packed constellation.
+Note: The argument $\sqrt{4/(5 N_0) \cdot E_b} = \sqrt{(4/5)} \cdot \sqrt{E_b/N_0}$ compared to $\sqrt{2} \cdot \sqrt{E_b/N_0}$ for BPSK — the factor $\sqrt{4/5}/\sqrt{2} = \sqrt{2/5} \approx 0.632$ (a $10\log_{10}(5/2) \approx 4$ dB penalty) represents the reduced normalised distance in 16-QAM due to the more tightly packed constellation.
 
 ---
 
@@ -170,9 +170,10 @@ Note: The argument $\sqrt{8/(5 N_0) \cdot E_b} = \sqrt{(8/5)} \cdot \sqrt{E_b/N_
 |---|---|
 | 2.0 | $2.28 \times 10^{-2}$ |
 | 3.0 | $1.35 \times 10^{-3}$ |
-| 3.36 | $3.9 \times 10^{-4}$ |
+| 2.83 | $2.33 \times 10^{-3}$ |
 | 4.0 | $3.17 \times 10^{-5}$ |
-| 4.42 | $4.9 \times 10^{-6}$ |
+| 4.26 | $1.0 \times 10^{-5}$ |
+| 4.48 | $3.7 \times 10^{-6}$ |
 | 5.0 | $2.87 \times 10^{-7}$ |
 
 ### At $E_b/N_0 = 10$ dB ($= 10$ linear)
@@ -181,23 +182,23 @@ Note: The argument $\sqrt{8/(5 N_0) \cdot E_b} = \sqrt{(8/5)} \cdot \sqrt{E_b/N_
 $$\sqrt{\frac{2 \times 10}{1}} = \sqrt{20} = 4.472 \quad \Rightarrow \quad P_b = Q(4.472) \approx 3.87 \times 10^{-6}$$
 
 **16-QAM:**
-$$\sqrt{\frac{8 \times 10}{5 \times 1}} = \sqrt{16} = 4.0 \quad \Rightarrow \quad P_b = \frac{3}{4} Q(4.0) = \frac{3}{4} \times 3.17 \times 10^{-5} \approx 2.38 \times 10^{-5}$$
+$$\sqrt{\frac{4 \times 10}{5 \times 1}} = \sqrt{8} = 2.83 \quad \Rightarrow \quad P_b = \frac{3}{4} Q(2.83) = \frac{3}{4} \times 2.33 \times 10^{-3} \approx 1.75 \times 10^{-3}$$
 
 ### At $E_b/N_0 = 14$ dB ($\approx 25.1$ linear)
 
 **BPSK/QPSK:**
-$$\sqrt{2 \times 25.1} = \sqrt{50.2} = 7.09 \quad \Rightarrow \quad P_b = Q(7.09) \approx 6.6 \times 10^{-13}$$
+$$\sqrt{2 \times 25.1} = \sqrt{50.2} = 7.09 \quad \Rightarrow \quad P_b = Q(7.09) \approx 6.8 \times 10^{-13}$$
 
 **16-QAM:**
-$$\sqrt{\frac{8 \times 25.1}{5}} = \sqrt{40.2} = 6.34 \quad \Rightarrow \quad P_b = \frac{3}{4} Q(6.34) \approx \frac{3}{4} \times 1.2 \times 10^{-10} \approx 9 \times 10^{-11}$$
+$$\sqrt{\frac{4 \times 25.1}{5}} = \sqrt{20.1} = 4.48 \quad \Rightarrow \quad P_b = \frac{3}{4} Q(4.48) \approx \frac{3}{4} \times 3.7 \times 10^{-6} \approx 2.8 \times 10^{-6}$$
 
 ### Summary Table
 
 | Scheme | $P_b$ at 10 dB | $P_b$ at 14 dB |
 |---|---|---|
-| BPSK | $3.9 \times 10^{-6}$ | $6.6 \times 10^{-13}$ |
-| QPSK | $3.9 \times 10^{-6}$ | $6.6 \times 10^{-13}$ |
-| 16-QAM | $2.4 \times 10^{-5}$ | $9.0 \times 10^{-11}$ |
+| BPSK | $3.9 \times 10^{-6}$ | $6.8 \times 10^{-13}$ |
+| QPSK | $3.9 \times 10^{-6}$ | $6.8 \times 10^{-13}$ |
+| 16-QAM | $1.8 \times 10^{-3}$ | $2.8 \times 10^{-6}$ |
 
 ---
 
@@ -207,13 +208,11 @@ $$\sqrt{\frac{8 \times 25.1}{5}} = \sqrt{40.2} = 6.34 \quad \Rightarrow \quad P_
 
 At BER $= 10^{-5}$, we can find the required $E_b/N_0$ for each scheme:
 
-**BPSK:** $Q(\sqrt{2x}) = 10^{-5} \Rightarrow \sqrt{2x} \approx 4.42 \Rightarrow x = 9.77$ ($= 9.9$ dB)
+**BPSK:** $Q(\sqrt{2x}) = 10^{-5} \Rightarrow \sqrt{2x} \approx 4.26 \Rightarrow x = 9.09$ ($= 9.6$ dB)
 
-**16-QAM:** $\frac{3}{4} Q(\sqrt{8x/5}) = 10^{-5} \Rightarrow Q(\sqrt{8x/5}) = 1.33 \times 10^{-5} \Rightarrow \sqrt{8x/5} \approx 4.37 \Rightarrow x = 4.37^2 \times 5/8 = 11.9$ ($= 10.75$ dB)
+**16-QAM:** $\frac{3}{4} Q(\sqrt{4x/5}) = 10^{-5} \Rightarrow Q(\sqrt{4x/5}) = 1.33 \times 10^{-5} \Rightarrow \sqrt{4x/5} \approx 4.20 \Rightarrow x = 4.20^2 \times 5/4 = 22.1$ ($= 13.4$ dB)
 
-Solving: $Q(\sqrt{8x/5}) = 10^{-5}/0.75 = 1.33 \times 10^{-5}$. From Q-function tables, $Q(4.2) \approx 1.3 \times 10^{-5}$, so $\sqrt{8x/5} \approx 4.2$, giving $x = 4.2^2 \times 5/8 = 11.0$ ($= 10.4$ dB).
-
-**SNR penalty at equal $E_b/N_0$**: 16-QAM requires ~0.5 dB more $E_b/N_0$ than BPSK at BER $= 10^{-5}$. This is smaller than the commonly cited ~4 dB gap because the large gaps are based on $E_s/N_0$ comparisons, not $E_b/N_0$. At equal $E_s/N_0$, BPSK has $10\log_{10}(4) = 6$ dB more $E_b$ per symbol than 16-QAM (since BPSK carries 1 bit/symbol vs 4 bits/symbol), which accounts for the large cited performance gap. At equal $E_b/N_0$ (the fair comparator for spectral efficiency analysis), the gap is much smaller.
+**SNR penalty at equal $E_b/N_0$**: 16-QAM requires ~3.8 dB more $E_b/N_0$ than BPSK at BER $= 10^{-5}$, close to the $10\log_{10}(5/2) \approx 4$ dB distance penalty found above and consistent with the commonly cited ~4 dB gap. The price of carrying 4 bits per symbol instead of 1 (or 2 for QPSK) is this extra energy per bit.
 
 ### Practical Implications
 

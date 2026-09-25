@@ -149,7 +149,7 @@ D. FLMS eliminates the need for a forgetting factor.
 
 ---
 
-**Q14.** For the Wiener filter applied to signal estimation in additive noise ($d[n] = s[n] + v[n]$, where $s[n]$ and $v[n]$ are uncorrelated), the optimal Wiener filter in the frequency domain is:
+**Q14.** For the Wiener filter applied to signal estimation in additive noise (observation $x[n] = s[n] + v[n]$, desired signal $d[n] = s[n]$, where $s[n]$ and $v[n]$ are uncorrelated), the optimal Wiener filter in the frequency domain is:
 
 A. $H_{opt}(e^{j\omega}) = \dfrac{S_{ss}(e^{j\omega})}{S_{xx}(e^{j\omega})}$
 
@@ -170,7 +170,7 @@ D. The loudspeaker signal being fed back twice through the room impulse response
 
 ---
 
-**Q16.** The convergence time constant of the LMS algorithm for the $k$th eigenmode is approximately:
+**Q16.** Using Widrow's form of the update, $\mathbf{w}[n+1] = \mathbf{w}[n] + 2\mu\, e[n]\, \mathbf{x}[n]$, the convergence time constant of the LMS learning curve for the $k$th eigenmode is approximately:
 
 $$\tau_k \approx \frac{1}{4 \mu \lambda_k}$$
 
@@ -192,7 +192,7 @@ D. Using particle filtering to represent the posterior distribution with a set o
 
 ---
 
-**Q18.** The misadjustment of the LMS algorithm with step size $\mu$ and filter length $M$ operating on white input with variance $\sigma_x^2$ is approximately:
+**Q18.** With the same (Widrow) form of the update as in Q16, the misadjustment of the LMS algorithm with step size $\mu$ and filter length $M$ operating on white input with variance $\sigma_x^2$ is approximately:
 
 $$\mathcal{M} \approx \mu M \sigma_x^2$$
 
@@ -278,7 +278,7 @@ The RLS forgetting factor $\lambda$ down-weights past data exponentially: a samp
 
 **Q7 — Answer: B**
 
-The LMS learning curve for the $k$th eigenmode has a time constant $\tau_k \approx 1/(4\mu\lambda_k)$. When the condition number $\kappa = \lambda_{max}/\lambda_{min}$ is large, the modes associated with $\lambda_{min}$ converge very slowly (large $\tau$) while the modes associated with $\lambda_{max}$ converge quickly. The overall convergence is limited by the slowest mode. Furthermore, the step size is constrained by $\lambda_{max}$: to avoid instability, $\mu < 2/\lambda_{max}$, which then makes $\tau_{min} = 1/(4\mu\lambda_{min})$ very large. Option A is wrong — high condition number means a large spread of eigenvalues, not all near zero. Option C is wrong — increasing $\mu$ risks instability. Option D is false.
+With the update of Q1, the LMS learning curve for the $k$th eigenmode has a time constant $\tau_k \approx 1/(2\mu\lambda_k)$. When the condition number $\kappa = \lambda_{max}/\lambda_{min}$ is large, the modes associated with $\lambda_{min}$ converge very slowly (large $\tau$) while the modes associated with $\lambda_{max}$ converge quickly. The overall convergence is limited by the slowest mode. Furthermore, the step size is constrained by $\lambda_{max}$: to avoid instability, $\mu < 2/\lambda_{max}$, which then makes the slowest time constant $1/(2\mu\lambda_{min})$ very large. Option A is wrong — high condition number means a large spread of eigenvalues, not all near zero. Option C is wrong — increasing $\mu$ risks instability. Option D is false.
 
 ---
 

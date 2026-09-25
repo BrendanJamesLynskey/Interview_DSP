@@ -85,22 +85,22 @@ $$h[n] = \{h_0, h_1, h_2, \ldots, h_{19}\}$$
 
 with indices $n = 0, 1, \ldots, 19$.
 
-**Typical values** for this design (low-value, symmetric around $n = 9.5$):
+**Values** from `firwin(20, 0.25)` (Hamming window), symmetric around $n = 9.5$:
 
 ```
-h[0]  =  0.0028   h[10] =  0.0028  (symmetric: h[n] = h[19-n])
-h[1]  = -0.0000   h[11] = -0.0000
-h[2]  = -0.0114   h[12] = -0.0114
-h[3]  = -0.0000   h[13] = -0.0000
-h[4]  =  0.0507   h[14] =  0.0507
-h[5]  = -0.0000   h[15] = -0.0000
-h[6]  = -0.2000   h[16] = -0.2000
-h[7]  = -0.0000   h[17] = -0.0000
-h[8]  =  0.6300   h[18] =  0.6300
-h[9]  =  0.2500   h[19] =  0.2500
+h[0]  =  0.0025   h[19] =  0.0025  (symmetric: h[n] = h[19-n])
+h[1]  =  0.0015   h[18] =  0.0015
+h[2]  = -0.0029   h[17] = -0.0029
+h[3]  = -0.0130   h[16] = -0.0130
+h[4]  = -0.0227   h[15] = -0.0227
+h[5]  = -0.0156   h[14] = -0.0156
+h[6]  =  0.0251   h[13] =  0.0251
+h[7]  =  0.0997   h[12] =  0.0997
+h[8]  =  0.1844   h[11] =  0.1844
+h[9]  =  0.2410   h[10] =  0.2410
 ```
 
-(Exact values depend on the specific design; the pattern shows linear phase symmetry.)
+(Other design methods give different values; the pattern shows linear phase symmetry.)
 
 ---
 
@@ -122,7 +122,7 @@ Takes coefficients $h[0], h[4], h[8], h[12], h[16]$:
 
 $$E_0(z) = h[0] + h[4]z^{-1} + h[8]z^{-2} + h[12]z^{-3} + h[16]z^{-4}$$
 
-$$E_0(z) = 0.0028 + 0.0507z^{-1} + 0.6300z^{-2} + 0.0507z^{-3} + 0.0028z^{-4}$$
+$$E_0(z) = 0.0025 - 0.0227z^{-1} + 0.1844z^{-2} + 0.0997z^{-3} - 0.0130z^{-4}$$
 
 ### Polyphase Component $E_1(z)$
 
@@ -130,9 +130,7 @@ Takes coefficients $h[1], h[5], h[9], h[13], h[17]$:
 
 $$E_1(z) = h[1] + h[5]z^{-1} + h[9]z^{-2} + h[13]z^{-3} + h[17]z^{-4}$$
 
-$$E_1(z) = 0.0000 + 0.0000z^{-1} + 0.2500z^{-2} + 0.0000z^{-3} + 0.0000z^{-4}$$
-
-(Near-zero values because the filter has zeros at odd multiples of $\pi/4$ — typical for half-band-like designs.)
+$$E_1(z) = 0.0015 - 0.0156z^{-1} + 0.2410z^{-2} + 0.0251z^{-3} - 0.0029z^{-4}$$
 
 ### Polyphase Component $E_2(z)$
 
@@ -140,7 +138,9 @@ Takes coefficients $h[2], h[6], h[10], h[14], h[18]$:
 
 $$E_2(z) = h[2] + h[6]z^{-1} + h[10]z^{-2} + h[14]z^{-3} + h[18]z^{-4}$$
 
-$$E_2(z) = -0.0114 + (-0.2000)z^{-1} + 0.0028z^{-2} + (-0.2000)z^{-3} + (-0.0114)z^{-4}$$
+$$E_2(z) = -0.0029 + 0.0251z^{-1} + 0.2410z^{-2} - 0.0156z^{-3} + 0.0015z^{-4}$$
+
+(Because $h[n] = h[19-n]$, $E_2$ is $E_1$ reversed and $E_3$ is $E_0$ reversed.)
 
 ### Polyphase Component $E_3(z)$
 
@@ -148,13 +148,13 @@ Takes coefficients $h[3], h[7], h[11], h[15], h[19]$:
 
 $$E_3(z) = h[3] + h[7]z^{-1} + h[11]z^{-2} + h[15]z^{-3} + h[19]z^{-4}$$
 
-$$E_3(z) = 0.0000 + 0.0000z^{-1} + 0.0000z^{-2} + 0.0000z^{-3} + 0.2500z^{-4}$$
+$$E_3(z) = -0.0130 + 0.0997z^{-1} + 0.1844z^{-2} - 0.0227z^{-3} + 0.0025z^{-4}$$
 
 ### Verification: Reconstruct $H(z)$
 
 $$H(z) = E_0(z^4) + z^{-1}E_1(z^4) + z^{-2}E_2(z^4) + z^{-3}E_3(z^4)$$
 
-Check the $z^{-9}$ coefficient of $H(z)$. From the decomposition, $z^{-9} = z^{-1} \cdot (z^4)^{-2}$, which comes from $E_1(z^4)$ at $z^{-2}$, i.e., $h[4\times2 + 1] = h[9] = 0.250$. ✓
+Check the $z^{-9}$ coefficient of $H(z)$. From the decomposition, $z^{-9} = z^{-1} \cdot (z^4)^{-2}$, which comes from $E_1(z^4)$ at $z^{-2}$, i.e., $h[4\times2 + 1] = h[9] = 0.2410$. ✓
 
 ---
 
@@ -237,7 +237,7 @@ Or equivalently: $20$ MACs per input sample, at $80\,\text{kHz}$.
 
 **Saving: factor $M = 4$ in computational load.** The polyphase approach uses exactly $1/M$ of the computation because all filtering is performed at the output rate instead of the input rate.
 
-**Memory savings:** The polyphase structure also needs only the current and past output-rate samples, not a large input-rate delay line. For real-time embedded systems, this also reduces the register / SRAM requirement.
+**Memory:** The polyphase structure does not save storage: the $M$ branches together still hold $N = 20$ past input samples ($N/M = 5$ per branch). The saving is in arithmetic, and in that each branch's registers update only at the output rate.
 
 ---
 
@@ -291,7 +291,7 @@ def polyphase_decimator(x, h, M):
             # Extract every M-th sample of padded input, offset by k
             # Starting from the (4m - k)th sample of the original input
             start = (N - 1) + M * m - k  # index in padded array
-            x_branch = x_padded[start:start - M * L:-M][:L]
+            x_branch = x_padded[start - M * np.arange(L)]
             y_out[m] += np.dot(E[k, :], x_branch)
 
     return y_out
@@ -329,31 +329,35 @@ if __name__ == "__main__":
 
     # Verify spectral content
     from numpy.fft import fft, fftfreq
-    Y = fft(y_naive[start:start + 512])
-    freqs = fftfreq(512, d=1 / fs_out)
+    seg = y_naive[start:start + 192]   # 192 samples: 5 kHz and 10 kHz fall exactly on bins
+    Y = fft(seg) / (len(seg) / 2)      # scale so a unit-amplitude cosine reads 0 dB
+    freqs = fftfreq(len(seg), d=1 / fs_out)
 
     f5k_idx = np.argmin(np.abs(freqs - 5000))
-    f30k_alias_idx = np.argmin(np.abs(freqs - (30000 % fs_out)))  # 30k aliases to 10k
     print(f"\nSpectral analysis (output at {fs_out/1000:.0f} kHz):")
     print(f"  5 kHz component: {20*np.log10(np.abs(Y[f5k_idx])):.1f} dB (should be ~0 dB)")
-    print(f"  Alias of 30 kHz: {20*np.log10(np.abs(Y[f30k_alias_idx]) + 1e-12):.1f} dB (should be < -60 dB)")
+    # 30 kHz aliases to 10 kHz, exactly the output Nyquist bin, where the sampled value depends
+    # on phase; so report the filter's attenuation at 30 kHz directly instead
+    from scipy.signal import freqz
+    _, H30 = freqz(h, [1.0], [30000], fs=fs_in)
+    print(f"  Filter gain at 30 kHz (aliases to 10 kHz): {20*np.log10(np.abs(H30[0])):.1f} dB")
 ```
 
 **Expected output:**
 
 ```
 Polyphase components (M=4, N=20, 5 taps each):
-  E_0(z) coefficients: [ 0.002820  0.050765  0.630029  0.050765  0.002820]
-  E_1(z) coefficients: [-0.000000  0.000000  0.250000  0.000000 -0.000000]
-  E_2(z) coefficients: [-0.011440 -0.199688  0.002820 -0.199688 -0.011440]
-  E_3(z) coefficients: [-0.000000  0.000000  0.000000  0.000000  0.250000]
+  E_0(z) coefficients: [ 0.002465 -0.022733  0.184354  0.099721 -0.01299 ]
+  E_1(z) coefficients: [ 0.001497 -0.015576  0.241011  0.025112 -0.002862]
+  E_2(z) coefficients: [-0.002862  0.025112  0.241011 -0.015576  0.001497]
+  E_3(z) coefficients: [-0.01299   0.099721  0.184354 -0.022733  0.002465]
 
-Max difference between naive and polyphase outputs: 4.44e-16
+Max difference between naive and polyphase outputs: 2.22e-16
 Outputs match!
 
 Spectral analysis (output at 20 kHz):
-  5 kHz component: 0.1 dB  (should be ~0 dB)
-  Alias of 30 kHz: -62.4 dB (should be < -60 dB)
+  5 kHz component: -0.4 dB (should be ~0 dB)
+  Filter gain at 30 kHz (aliases to 10 kHz): -51.0 dB
 ```
 
 ---

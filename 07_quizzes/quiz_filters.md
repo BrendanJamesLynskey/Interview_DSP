@@ -196,7 +196,7 @@ D. The frequency response has zero imaginary part for all $\omega$.
 | 5 | B |
 | 6 | B |
 | 7 | B |
-| 8 | B |
+| 8 | A |
 | 9 | B |
 | 10 | D |
 | 11 | A |
@@ -205,7 +205,7 @@ D. The frequency response has zero imaginary part for all $\omega$.
 | 14 | B |
 | 15 | B |
 | 16 | C |
-| 17 | A |
+| 17 | C |
 | 18 | B |
 
 ---
@@ -220,13 +220,13 @@ The defining practical advantage of FIR filters is that symmetric or anti-symmet
 
 **Q2 — Answer: A**
 
-A Type I FIR filter (odd length $N$, symmetric: $h[n] = h[N-1-n]$) has no forced zeros at $\omega = 0$ or $\omega = \pi$. Its frequency response $H(e^{j\omega})$ can be a real-valued, even function of $\omega$ with no structural constraints preventing highpass or bandpass designs. This is why Type I is the most versatile FIR type. Option B describes Type II (even length, symmetric), which has a forced zero at $\omega = \pi$. Option C describes Type III (anti-symmetric, odd length), which has zeros at both $\omega = 0$ and $\omega = \pi$. Option D describes Type III, not Type I.
+A Type I FIR filter (odd length $N$, symmetric: $h[n] = h[N-1-n]$) has no forced zeros at $\omega = 0$ or $\omega = \pi$. Its frequency response $H(e^{j\omega})$ can be a real-valued, even function of $\omega$ with no structural constraints preventing highpass or bandpass designs. This is why Type I is the most versatile FIR type. Option B describes Type II (even length, symmetric), which has a forced zero at $\omega = \pi$. Option C describes Type IV (anti-symmetric, even length), which has a forced zero at $\omega = 0$. Option D describes Type III (anti-symmetric, odd length), not Type I.
 
 ---
 
 **Q3 — Answer: B**
 
-Parks-McClellan (also called the Remez exchange algorithm) solves the Chebyshev (minimax) approximation problem: it minimises the maximum weighted error $\max_\omega |W(\omega)(D(\omega) - H(\omega))|$ over specified frequency bands. By the equiripple theorem, the optimal solution has the error equirippling between $\pm\delta$ at $N+2$ extremal frequencies. Option A describes windowed-sinc or least-squares FIR design. Option C describes LASSO-style sparse design. Option D is a reasonable-sounding but incorrect characterisation — LP methods exist but are not the Parks-McClellan formulation.
+Parks-McClellan (also called the Remez exchange algorithm) solves the Chebyshev (minimax) approximation problem: it minimises the maximum weighted error $\max_\omega |W(\omega)(D(\omega) - H(\omega))|$ over specified frequency bands. By the alternation theorem, the optimal solution has the error equirippling between $\pm\delta$ at (at least) $(N+3)/2$ extremal frequencies for a length-$N$ Type I filter. Option A describes windowed-sinc or least-squares FIR design. Option C describes LASSO-style sparse design. Option D is a reasonable-sounding but incorrect characterisation — LP methods exist but are not the Parks-McClellan formulation.
 
 ---
 
@@ -242,7 +242,7 @@ For small $\omega$, $\tan(\omega/2) \approx \omega/2$, so $\Omega \approx \omega
 
 **Q5 — Answer: B**
 
-DF-II (transposed or canonical form) shares the delay line between the feedback and feedforward paths, requiring $N$ delays for an $N$th-order filter rather than $2N$ for DF-I. However, in DF-II, the state (delay) variables represent an intermediate signal that combines both the input and the accumulated feedback. This intermediate signal can take values much larger than either the input or output, causing overflow in fixed-point arithmetic even when the final output is in range. DF-I keeps feedback and feedforward states separate, reducing overflow risk. Option A is wrong — DF-II uses fewer multiplications, not more. Options C and D are false.
+DF-II (the canonical form) shares the delay line between the feedback and feedforward paths, requiring $N$ delays for an $N$th-order filter rather than $2N$ for DF-I. However, in DF-II, the state (delay) variables represent an intermediate signal that combines both the input and the accumulated feedback. This intermediate signal can take values much larger than either the input or output, causing overflow in fixed-point arithmetic even when the final output is in range. DF-I keeps feedback and feedforward states separate, reducing overflow risk. Option A is wrong — DF-II uses the same number of multiplications as DF-I; it saves delay elements. Options C and D are false.
 
 ---
 
@@ -258,9 +258,9 @@ Decimation by $M$ keeps every $M$th sample, which in frequency corresponds to st
 
 ---
 
-**Q8 — Answer: B**
+**Q8 — Answer: A**
 
-The noble identity for decimation states: filtering with $H(z)$ at rate $f_s$ followed by downsampling by $M$ is equivalent to downsampling by $M$ first, then filtering with $H(z^M)$ at rate $f_s/M$. Formally: $\downarrow M \circ H(z) = H(z^M) \circ \downarrow M$. This allows moving the filter to the output side at the lower rate, saving computation. Note that $H(z^M)$ is an interpolated version of the filter (its impulse response has $M-1$ zeros inserted between each tap). Option A reverses the order of operations. Options C and D describe properties of polyphase decomposition, not the noble identity.
+The noble identity for decimation states: filtering with $H(z^M)$ followed by downsampling by $M$ is equivalent to downsampling by $M$ first, then filtering with $H(z)$ at the lower rate $f_s/M$. Formally: $H(z^M) \rightarrow\ \downarrow M \;\equiv\; \downarrow M \rightarrow H(z)$. Read the other way round (option A), downsampling then filtering with $H(z)$ equals filtering with $H(z^M)$ then downsampling. This lets a filter whose impulse response is sparse ($H(z^M)$ has $M-1$ zeros between taps, as in each polyphase branch) be moved to the low-rate side, saving computation. Option B is wrong: a general $H(z)$ cannot be moved past the downsampler, and the $z^M$ belongs on the high-rate side. Options C and D describe properties of polyphase decomposition, not the noble identity.
 
 ---
 
@@ -272,13 +272,13 @@ A CIC filter consists of $N$ integrators (running accumulators: $y[n] = y[n-1] +
 
 **Q10 — Answer: D (Blackman)**
 
-Among the four windows listed, the Blackman window achieves the highest stopband attenuation (approximately 74 dB) due to its three-term cosine construction, which rolls off the window spectrum rapidly. The cost is the widest mainlobe (transition band approximately $8\pi/N$ wide). The rectangular window (A) has the narrowest mainlobe (transition band $\approx 4\pi/N$) but only 13 dB sidelobe attenuation. Hann (B) gives about 44 dB and Hamming (C) about 53 dB, both with intermediate transition widths.
+Among the four windows listed, the Blackman window achieves the highest stopband attenuation (approximately 74 dB) due to its three-term cosine construction, which rolls off the window spectrum rapidly. The cost is the widest mainlobe (approximately $12\pi/N$ wide). The rectangular window (A) has the narrowest mainlobe ($\approx 4\pi/N$) but only 13 dB peak sidelobe attenuation (about 21 dB filter stopband attenuation). Hann (B) gives about 44 dB and Hamming (C) about 53 dB, both with intermediate transition widths.
 
 ---
 
 **Q11 — Answer: A**
 
-The Hann window is a smooth bell-shaped taper that reduces the discontinuity at the edges of the analysis window, substantially lowering spectral sidelobes (from about $-13\ \text{dB}$ for rectangular to about $-32\ \text{dB}$ first sidelobe for Hann). The cost is a wider mainlobe — approximately double the rectangular window's mainlobe width. Option B has the effects reversed. Option C is wrong — windowing is specifically the technique for reducing spectral leakage; zero-padding only increases frequency resolution (interpolates the spectrum) without reducing leakage. Option D is self-contradictory since wider mainlobe and higher sidelobes would make the window worse in every way.
+The Hann window is a smooth bell-shaped taper that reduces the discontinuity at the edges of the analysis window, substantially lowering spectral sidelobes (from about $-13\ \text{dB}$ for rectangular to about $-32\ \text{dB}$ first sidelobe for Hann). The cost is a wider mainlobe — approximately double the rectangular window's mainlobe width. Option B has the effects reversed. Option C is wrong — windowing is specifically the technique for reducing spectral leakage; zero-padding only interpolates the spectrum; it improves neither resolution nor leakage. Option D is self-contradictory since wider mainlobe and higher sidelobes would make the window worse in every way.
 
 ---
 
@@ -302,7 +302,7 @@ Impulse invariance works by sampling the continuous-time impulse response $h_a(t
 
 **Q15 — Answer: B**
 
-A Type IV FIR filter (even length $N$, anti-symmetric: $h[n] = -h[N-1-n]$) has a forced zero at both $\omega = 0$ and $\omega = \pi$. The frequency response has the form $H(e^{j\omega}) = je^{-j\omega(N-1)/2} \tilde{H}(\omega)$ where $\tilde{H}(\omega)$ is a real odd function. This $90°$ phase shift across all frequencies, combined with an approximately flat magnitude over a wide band, makes Type IV ideal for implementing a discrete Hilbert transform (which requires $90°$ phase shift at all frequencies). Option A (lowpass) is incompatible with the zero at DC. Option C (notch at DC) would only require a zero at DC, not the anti-symmetric structure. Option D (all-pass) requires unity magnitude at all frequencies.
+A Type IV FIR filter (even length $N$, anti-symmetric: $h[n] = -h[N-1-n]$) has a forced zero at $\omega = 0$ (but not at $\omega = \pi$). The frequency response has the form $H(e^{j\omega}) = je^{-j\omega(N-1)/2} \tilde{H}(\omega)$ where $\tilde{H}(\omega)$ is a real odd function. This $90°$ phase shift across all frequencies, combined with an approximately flat magnitude over a wide band, makes Type IV ideal for implementing a discrete Hilbert transform (which requires $90°$ phase shift at all frequencies). Option A (lowpass) is incompatible with the zero at DC. Option C (notch at DC) would only require a zero at DC, not the anti-symmetric structure. Option D (all-pass) requires unity magnitude at all frequencies.
 
 ---
 
@@ -312,9 +312,13 @@ When $M$ is large (e.g., $M = 64$ or more, common in SDR applications), a single
 
 ---
 
-**Q17 — Answer: A**
+**Q17 — Answer: C**
 
-The CIC filter's magnitude response is $|H(f)|^N$ where $|H(f)| = \left|\frac{\sin(\pi f R / f_s)}{\sin(\pi f / f_s)}\right|$. At aliasing band frequencies near the edge of the first alias zone, the attenuation in dB grows as $N$ times the single-stage attenuation in dB. For the worst-case aliasing frequency (closest to the transition band), the approximation simplifies to approximately $20N\log_{10}(R)\ \text{dB}$ for large $R$. This rule of thumb is widely used in CIC design. Option B ($6N$ dB) is the slope of a first-order CIC at high frequencies in terms of octave roll-off. Options C and D are either more precise variants or incorrect formulas.
+The CIC filter's magnitude response is $|H(f)| = \left|\frac{\sin(\pi f R / f_s)}{\sin(\pi f / f_s)}\right|^N$, with DC gain $R^N$. The attenuation at the aliasing frequency relative to DC is therefore
+
+$$A(f_a) = 20N\log_{10}\!\left(\frac{R \sin(\pi f_a / f_s)}{\sin(\pi f_a R / f_s)}\right)\ \text{dB},$$
+
+which is option C (note $\pi f_a/(f_s/R) = \pi f_a R/f_s$). It depends on how close $f_p$ is to the output Nyquist frequency, and each extra stage adds the same number of dB. Option A, $20N\log_{10}(R)$, is the CIC's DC *gain* in dB (the bit growth $N\log_2 R$ expressed in dB), not its alias attenuation. Option B has no basis as an alias-attenuation formula. Option D is not a CIC formula.
 
 ---
 

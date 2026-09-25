@@ -388,13 +388,14 @@ The LMS step size $\mu$ must satisfy $0 < \mu < 2/\lambda_\text{max}$ for
 convergence, where $\lambda_\text{max}$ is the largest eigenvalue of $\mathbf{R}_{xx}$.
 A large condition number $\kappa = \lambda_\text{max}/\lambda_\text{min}$ means
 different modes converge at vastly different rates (the slowest mode converges
-as $|1 - 2\mu\lambda_\text{min}|^n$). This motivates normalised LMS (NLMS) or
-RLS, which are condition-number independent.
+as $|1 - 2\mu\lambda_\text{min}|^n$). This motivates RLS, whose convergence is largely
+independent of the condition number. (Normalised LMS removes the dependence on input
+power, but not on the eigenvalue spread.)
 
 ### Q4: What is the Wiener filter's connection to linear MMSE (LMMSE) estimation?
 
 The Wiener filter IS the LMMSE estimator restricted to a finite-impulse-response
 (FIR) structure. The Wiener-Hopf equation is the first-order optimality condition
-(stationarity of the Lagrangian) for the constrained LMMSE problem. Without the
+(gradient of the quadratic MSE set to zero) for the FIR-restricted LMMSE problem. Without the
 FIR constraint, the optimal linear estimator is the Wiener filter in the
 frequency domain: $H(\omega) = S_{xd}(\omega)/S_{xx}(\omega)$.

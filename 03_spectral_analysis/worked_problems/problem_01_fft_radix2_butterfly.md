@@ -272,10 +272,10 @@ For $N = 8$ (radix-2 DIT):
 | Stage | Butterflies | Non-trivial mults | Additions |
 |:-:|:-:|:-:|:-:|
 | 1 | 4 | 0 (all $W_8^0=1$) | 8 |
-| 2 | 4 | 2 ($W_8^2=-j$ is trivial: swap Im/Re) | 8 |
-| 3 | 4 | 4 (2 non-trivial: $W_8^1$, $W_8^3$; 2 trivial: $W_8^0$, $W_8^2$) | 8 |
-| **Total** | **12** | **4** (non-trivial) | **24** |
+| 2 | 4 | 0 ($W_8^0 = 1$ and $W_8^2=-j$ are trivial: swap Im/Re) | 8 |
+| 3 | 4 | 2 ($W_8^1$, $W_8^3$; the other 2 are trivial: $W_8^0$, $W_8^2$) | 8 |
+| **Total** | **12** | **2** (non-trivial) | **24** |
 
-Direct DFT would require $N^2 = 64$ complex multiplications. The FFT uses only 4 non-trivial ones — a 16x reduction in multiplications for $N=8$.
+Direct DFT would require $N^2 = 64$ complex multiplications. The FFT uses $\frac{N}{2}\log_2 N = 12$ twiddle multiplications, of which only 2 are non-trivial — a $5.3\times$ reduction for $N=8$ counting all of them, $32\times$ counting only the non-trivial ones.
 
 Note: $W_8^2 = -j$ is "trivially" implemented as swapping real and imaginary parts with sign change, requiring no floating-point multiplication. This is why stage 2 has 0 "non-trivial" multiplications in a careful implementation.

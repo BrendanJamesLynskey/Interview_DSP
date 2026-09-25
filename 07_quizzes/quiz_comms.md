@@ -38,7 +38,7 @@ D. 16-QAM is sensitive to phase noise and cannot operate in AWGN.
 
 ---
 
-**Q4.** A matched filter maximises the signal-to-noise ratio (SNR) at the sampling instant. For a signal pulse $s(t)$ in AWGN with one-sided noise PSD $N_0/2$, the matched filter impulse response is:
+**Q4.** A matched filter maximises the signal-to-noise ratio (SNR) at the sampling instant. For a signal pulse $s(t)$ in AWGN with two-sided noise PSD $N_0/2$, the matched filter impulse response is:
 
 A. $h(t) = s(t)$  
 B. $h(t) = s(T - t)$, a time-reversed and delayed version of the transmit pulse  
@@ -140,7 +140,7 @@ D. $\text{SNR} = \frac{E_s^2}{N_0}$
 **Q15.** A pilot-aided frequency offset estimator in an OFDM system computes the phase of the cross-correlation between received pilot subcarriers and known pilot values across two OFDM symbols separated by $\Delta n$ symbols. The maximum unambiguous frequency offset that can be estimated is:
 
 A. $\Delta f_{max} = f_s / N$ (one subcarrier spacing)  
-B. $\Delta f_{max} = f_s / (2\Delta n \cdot T_{OFDM})$  
+B. $\Delta f_{max} = 1 / (2\Delta n \cdot T_{OFDM})$  
 C. $\Delta f_{max} = \Delta n \cdot \Delta f$ (scales with symbol separation)  
 D. $\Delta f_{max} = f_s / 2$
 
@@ -308,7 +308,7 @@ A time-domain pilot phase estimator measures the phase difference $\Delta\phi = 
 
 $$|\epsilon_f| < \frac{1}{2\Delta n\, T_{OFDM}}$$
 
-For $\Delta n = 1$, this is $\pm 1$ subcarrier spacing (half of $1/T_{OFDM} = \Delta f$, but including both sides). Option A is the subcarrier spacing itself (the unambiguous range for one-symbol estimates). Option C incorrectly scales with $\Delta n$ in the wrong direction. Option D ($f_s/2$) is the Nyquist limit for the baseband signal, unrelated to CFO estimation range.
+For $\Delta n = 1$, this is about $\pm\frac{1}{2}$ subcarrier spacing (slightly less, because $T_{OFDM}$ includes the CP and so $1/T_{OFDM} < \Delta f$). Option A is the subcarrier spacing itself (the unambiguous range for one-symbol estimates). Option C incorrectly scales with $\Delta n$ in the wrong direction. Option D ($f_s/2$) is the Nyquist limit for the baseband signal, unrelated to CFO estimation range.
 
 ---
 
@@ -320,7 +320,7 @@ Gray coding (also called reflected binary coding) assigns bit labels to constell
 
 **Q17 — Answer: B (4.8 bits/s/Hz)**
 
-64-QAM carries $\log_2(64) = 6$ bits per symbol. With a raised cosine filter of roll-off $\alpha = 0.25$, the occupied bandwidth is $B = (1+\alpha)/T = 1.25/T$ Hz (one-sided) or $1.25 R_s$ total, where $R_s = 1/T$ is the symbol rate. The spectral efficiency in bits/s per Hz of total bandwidth is:
+64-QAM carries $\log_2(64) = 6$ bits per symbol. With a raised cosine filter of roll-off $\alpha = 0.25$, the occupied passband (double-sided) bandwidth is $B = (1+\alpha)/T = 1.25/T = 1.25 R_s$ Hz, where $R_s = 1/T$ is the symbol rate. The spectral efficiency in bits/s per Hz of total bandwidth is:
 
 $$\eta = \frac{6 \text{ bits/symbol} \times R_s}{1.25 \times R_s} = \frac{6}{1.25} = 4.8\ \text{bits/s/Hz}$$
 

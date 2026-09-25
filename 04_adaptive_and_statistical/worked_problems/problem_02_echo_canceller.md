@@ -162,7 +162,7 @@ $$\text{ERLE}_\infty = -10\log_{10}\!\left(\frac{J_\infty}{J_0}\right) = -10\log
 
 $$= -10(-4 + \log_{10}(1.032)) \approx 10 \times 3.986 \approx 39.9 \text{ dB}$$
 
-**This exceeds the 30 dB target.**
+**This exceeds the 30 dB target for the part of the echo the 640-tap filter models.** It ignores the uncancelled tail: as Part 1 showed, the last 960 taps carry 1% of the echo energy ($10^{-3}$ here), so the overall residual is $\approx 10^{-3} + 1.03 \times 10^{-5}$ and the overall ERLE is $10\log_{10}(0.1/1.01 \times 10^{-3}) \approx 20$ dB. Reaching 30 dB overall needs the residual echo suppressor from Part 1 (or a longer filter).
 
 **Limiting factor.** The steady-state ERLE is limited by:
 1. **Noise floor:** $J_{\min} = \sigma_v^2$. With lower noise, ERLE would be higher.
@@ -199,7 +199,7 @@ $$\text{ERLE}'_\infty = 10\log_{10}\!\left(\frac{\sigma_{\text{echo}}^2}{J_{\min
 
 For $\sigma_e^2 = 10^{-3}$ (near-end speech at -30 dBFS, 20 dB below echo path input):
 
-$$\text{ERLE}'_\infty = 10\log_{10}\!\left(\frac{0.1}{(10^{-5} + 10^{-3}) \times 1.032}\right) \approx 10\log_{10}(97) \approx 19.9 \text{ dB}$$
+$$\text{ERLE}'_\infty = 10\log_{10}\!\left(\frac{0.1}{(10^{-5} + 10^{-3}) \times 1.032}\right) \approx 10\log_{10}(96) \approx 19.8 \text{ dB}$$
 
 This falls below the 30 dB target — but more importantly, the **weight corruption** during double-talk is severe. When near-end speech is active, LMS updates corrupt the filter coefficients. Solutions:
 
@@ -326,10 +326,10 @@ for name, erle in [('LMS', erle_lms), ('NLMS', erle_nlms)]:
 | Selected $\mu$ (LMS) | 0.001 | $\mathcal{M} < 5\%$ |
 | Selected $\tilde\mu$ (NLMS) | 0.1 | Normalised, good trade-off |
 | Time constant $\tau$ (LMS) | 5000 samples | $1/(2\mu\sigma_x^2)$ |
-| Time constant $\tau$ (NLMS) | ~1067 samples | $N/(2\tilde\mu)$ |
+| Time constant $\tau$ (NLMS) | ~1067 samples ($\tilde\mu = 0.3$); 3200 samples at $\tilde\mu = 0.1$ | $N/(2\tilde\mu)$ |
 | Convergence to 30 dB (LMS) | ~4.3 s | $\tau \ln(J_0/J_{30\text{dB}})$ |
-| Convergence to 30 dB (NLMS) | ~0.9 s | Approx. |
-| Steady-state ERLE | ~40 dB | Limited by noise floor |
+| Convergence to 30 dB (NLMS) | ~0.9 s ($\tilde\mu = 0.3$) | Approx. |
+| Steady-state ERLE | ~40 dB (modelled 640 taps); ~20 dB overall | Limited by noise floor; overall by the uncancelled tail |
 
 **Design recommendations:**
 1. Use NLMS (not LMS) for speech inputs due to highly variable input power and severe eigenvalue spread ($\chi \approx 361$).

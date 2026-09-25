@@ -49,7 +49,7 @@ $$\tan(76.5°) = \tan\!\left(\frac{17\pi}{40}\right) \approx 4.165$$
 
 $$\Omega_c = 2 \times 8000 \times 4.165 = 66{,}640\,\text{rad/s}$$
 
-**Interpretation:** The severe pre-warping (factor of 4.165 instead of the expected $2\pi f_c \approx 21{,}363$ rad/s) is because $f_c = 3{,}400\,\text{Hz}$ is very close to the Nyquist frequency $f_N = 4{,}000\,\text{Hz}$. Near Nyquist, the bilinear transform's tangent mapping compresses a wide analog frequency range into a narrow digital range, requiring a much higher analog prototype cutoff to place the digital cutoff correctly.
+**Interpretation:** The severe pre-warping ($\Omega_c = 66{,}640$ rad/s, about $3.1\times$ the unwarped $2\pi f_c \approx 21{,}363$ rad/s) is because $f_c = 3{,}400\,\text{Hz}$ is very close to the Nyquist frequency $f_N = 4{,}000\,\text{Hz}$. Near Nyquist, the bilinear transform's tangent mapping compresses a wide analog frequency range into a narrow digital range, requiring a much higher analog prototype cutoff to place the digital cutoff correctly.
 
 ---
 
@@ -159,15 +159,15 @@ $$K_2 = \Omega_c^2 / d_0 = 4.441 / 5.763 = 0.7706$$
 
 $$H_2(z) = \frac{0.7706(1 + 2z^{-1} + z^{-2})}{1 + \frac{d_1}{d_0}z^{-1} + \frac{d_2}{d_0}z^{-2}}$$
 
-$$= \frac{0.7706(1 + 2z^{-1} + z^{-2})}{1 + 1.4522\,z^{-1} + 0.6302\,z^{-2}}$$
+$$= \frac{0.7706(1 + 2z^{-1} + z^{-2})}{1 + 1.4523\,z^{-1} + 0.6300\,z^{-2}}$$
 
 ### Combined $H(z)$
 
 $$H(z) = H_1(z) \cdot H_2(z)$$
 
-$$= \frac{0.8064(1+z^{-1})}{1+0.6129z^{-1}} \cdot \frac{0.7706(1+2z^{-1}+z^{-2})}{1+1.4522z^{-1}+0.6302z^{-2}}$$
+$$= \frac{0.8064(1+z^{-1})}{1+0.6129z^{-1}} \cdot \frac{0.7706(1+2z^{-1}+z^{-2})}{1+1.4523z^{-1}+0.6300z^{-2}}$$
 
-$$\boxed{H(z) = \frac{0.6214(1+z^{-1})(1+2z^{-1}+z^{-2})}{(1+0.6129z^{-1})(1+1.4522z^{-1}+0.6302z^{-2})}}$$
+$$\boxed{H(z) = \frac{0.6214(1+z^{-1})(1+2z^{-1}+z^{-2})}{(1+0.6129z^{-1})(1+1.4523z^{-1}+0.6300z^{-2})}}$$
 
 Overall numerator gain: $0.8064 \times 0.7706 = 0.6214$.
 
@@ -183,7 +183,7 @@ The bilinear transform guarantees that if the analog prototype has its $-3\,\tex
 
 ### DC Gain ($\omega = 0$, $z = 1$)
 
-$$H(e^{j0}) = H(1) = \frac{0.6214(1+1)(1+2+1)}{(1+0.6129)(1+1.4522+0.6302)} = \frac{0.6214 \times 2 \times 4}{1.6129 \times 3.0824}$$
+$$H(e^{j0}) = H(1) = \frac{0.6214(1+1)(1+2+1)}{(1+0.6129)(1+1.4523+0.6300)} = \frac{0.6214 \times 2 \times 4}{1.6129 \times 3.0823}$$
 
 $$= \frac{4.971}{4.971} = 1.0$$
 
@@ -219,22 +219,22 @@ This is $(1+z^{-1})^3$ — the binomial expansion. So:
 
 $$\text{Numerator: } 0.6214(1 + 3z^{-1} + 3z^{-2} + z^{-3})$$
 
-Denominator: $(1+0.6129z^{-1})(1+1.4522z^{-1}+0.6302z^{-2})$
+Denominator: $(1+0.6129z^{-1})(1+1.4523z^{-1}+0.6300z^{-2})$
 
-$= 1 + (0.6129 + 1.4522)z^{-1} + (0.6129 \times 1.4522 + 0.6302)z^{-2} + (0.6129 \times 0.6302)z^{-3}$
+$= 1 + (0.6129 + 1.4523)z^{-1} + (0.6129 \times 1.4523 + 0.6300)z^{-2} + (0.6129 \times 0.6300)z^{-3}$
 
-$= 1 + 2.0651\,z^{-1} + (0.8904 + 0.6302)z^{-2} + 0.3862\,z^{-3}$
+$= 1 + 2.0652\,z^{-1} + (0.8901 + 0.6300)z^{-2} + 0.3861\,z^{-3}$
 
-$= 1 + 2.0651\,z^{-1} + 1.5206\,z^{-2} + 0.3862\,z^{-3}$
+$= 1 + 2.0652\,z^{-1} + 1.5201\,z^{-2} + 0.3861\,z^{-3}$
 
 **Transfer function in direct form:**
 
-$$H(z) = \frac{0.6214 + 1.8642\,z^{-1} + 1.8642\,z^{-2} + 0.6214\,z^{-3}}{1 + 2.0651\,z^{-1} + 1.5206\,z^{-2} + 0.3862\,z^{-3}}$$
+$$H(z) = \frac{0.6214 + 1.8642\,z^{-1} + 1.8642\,z^{-2} + 0.6214\,z^{-3}}{1 + 2.0652\,z^{-1} + 1.5201\,z^{-2} + 0.3861\,z^{-3}}$$
 
 **Difference equation:**
 
 $$y[n] = 0.6214\,x[n] + 1.8642\,x[n-1] + 1.8642\,x[n-2] + 0.6214\,x[n-3]$$
-$$- 2.0651\,y[n-1] - 1.5206\,y[n-2] - 0.3862\,y[n-3]$$
+$$- 2.0652\,y[n-1] - 1.5201\,y[n-2] - 0.3861\,y[n-3]$$
 
 ```python
 import numpy as np
@@ -254,7 +254,7 @@ b, a = butter(order, Wn, btype='low', analog=False)
 print("b =", np.round(b, 6))
 print("a =", np.round(a, 6))
 # b: [0.6214, 1.8642, 1.8642, 0.6214]
-# a: [1.0000, 2.0651, 1.5206, 0.3862]
+# a: [1.0000, 2.0651, 1.5200, 0.3861]
 
 # Method 2: Second-order sections (preferred for numerical stability)
 sos = butter(order, Wn, btype='low', output='sos')
@@ -300,10 +300,14 @@ plt.show()
 
 **Expected output:**
 ```
-b = [0.621402  1.864205  1.864205  0.621402]
-a = [1.       2.065069  1.520598  0.386141]
-Magnitude at 3400.0 Hz: -3.000 dB (should be ≈ -3 dB)
-Steady-state amplitude at 3.4 kHz: 0.7072 (expected ≈ 0.707)
+b = [0.621399 1.864198 1.864198 0.621399]
+a = [1.       2.06514  1.519993 0.386063]
+SOS matrix:
+[[0.621399 0.621399 0.       1.       0.612801 0.      ]
+ [1.       2.       1.       1.       1.452339 0.629998]]
+
+Magnitude at 3400.0 Hz: -3.008 dB (should be ≈ -3 dB)
+Steady-state amplitude at 3.4 kHz: 0.7071 (expected ≈ 0.707)
 ```
 
 ---

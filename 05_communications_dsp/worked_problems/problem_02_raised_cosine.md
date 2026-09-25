@@ -81,9 +81,9 @@ The first factor $\text{sinc}(n) = \frac{\sin(\pi n)}{\pi n} = 0$ for all non-ze
 
 **Special case at $t = \pm T_s/(2\alpha)$:** Both numerator and denominator of the second factor are zero. Applying L'Hôpital:
 
-$$\lim_{t \to T_s/(2\alpha)} \frac{\cos(\pi\alpha t/T_s)}{1 - (2\alpha t/T_s)^2} = \frac{\pi\alpha}{2T_s} \cdot \frac{-\sin(\pi/2)}{-4\alpha/T_s} = \frac{\pi}{8}$$
+$$\lim_{t \to T_s/(2\alpha)} \frac{\cos(\pi\alpha t/T_s)}{1 - (2\alpha t/T_s)^2} = \frac{-(\pi\alpha/T_s)\sin(\pi/2)}{-4\alpha/T_s} = \frac{\pi}{4}$$
 
-Multiplied by the sinc factor (which is also finite at this point), the limit is finite.
+Multiplied by the sinc factor (which is also finite at this point), the limit is finite: $p_{RC}(\pm T_s/(2\alpha)) = \frac{\pi}{4}\,\text{sinc}\!\left(\frac{1}{2\alpha}\right)$.
 
 ### Numerical Impulse Responses
 
@@ -95,14 +95,16 @@ Sample index: $n = -24, -23, \ldots, 0, \ldots, 23, 24$. Time: $t_n = n \cdot T_
 
 **At $n = \pm 8$ ($t = \pm T_s$, first zero crossing):** $p_{RC}(\pm T_s) = \text{sinc}(\pm 1) \cdot [\text{finite}] = 0$. ✓
 
-**Sidelobe decay comparison (approximate peak of first sidelobe at $t \approx 1.5 T_s$):**
+**Sidelobe decay comparison (peak of first sidelobe, between $t \approx 1.2 T_s$ and $1.4 T_s$):**
 
 | $\alpha$ | First sidelobe level (dB) | Decay rate |
 |---|---|---|
-| 0.0 | $-13$ dB (sinc) | $1/t$ |
-| 0.25 | $-40$ dB | $1/t^3$ |
-| 0.5 | $-50$ dB | $1/t^3$ |
-| 1.0 | $-70$ dB | $1/t^3$ |
+| 0.0 | $-13.3$ dB (sinc) | $1/t$ |
+| 0.25 | $-14.3$ dB | $1/t^3$ |
+| 0.5 | $-17.5$ dB | $1/t^3$ |
+| 1.0 | $-31.5$ dB | $1/t^3$ |
+
+The first sidelobe is only slightly lower for small $\alpha$; the big difference is the $1/t^3$ decay of the later sidelobes.
 
 Higher $\alpha$ gives much faster sidelobe decay, which means:
 1. Better timing sensitivity tolerance (fewer neighbours contribute significant ISI)
@@ -139,7 +141,7 @@ The RRC time-domain response is:
 
 $$p_{RRC}(t) = \frac{4\alpha}{\pi\sqrt{T_s}} \cdot \frac{\cos\!\left(\frac{(1+\alpha)\pi t}{T_s}\right) + \frac{T_s}{4\alpha t}\sin\!\left(\frac{(1-\alpha)\pi t}{T_s}\right)}{1 - \left(\frac{4\alpha t}{T_s}\right)^2}$$
 
-**Important:** The RRC pulse does NOT satisfy zero ISI at integer multiples of $T_s$ — it is not a Nyquist pulse. Only the convolution of two RRC filters (i.e., the RC filter) satisfies zero ISI. The eye diagram of a single RRC filter would appear closed.
+**Important:** The RRC pulse does NOT satisfy zero ISI at integer multiples of $T_s$ — it is not a Nyquist pulse. Only the convolution of two RRC filters (i.e., the RC filter) satisfies zero ISI. The eye diagram after a single RRC filter shows residual ISI (a partly closed eye).
 
 ### Verification: RRC * RRC = RC
 
@@ -161,12 +163,12 @@ For $R_s = 1$ Msymbol/s ($T_s = 1$ µs):
 
 | Roll-off $\alpha$ | Bandwidth $B_{RC}$ | Spectral efficiency (QPSK) | Bandwidth (double-sided) |
 |---|---|---|---|
-| 0.0 | 500 kHz | 4 bit/s/Hz | 1 MHz |
-| 0.25 | 625 kHz | 3.2 bit/s/Hz | 1.25 MHz |
-| 0.5 | 750 kHz | 2.67 bit/s/Hz | 1.5 MHz |
-| 1.0 | 1000 kHz | 2.0 bit/s/Hz | 2 MHz |
+| 0.0 | 500 kHz | 2.0 bit/s/Hz | 1 MHz |
+| 0.25 | 625 kHz | 1.6 bit/s/Hz | 1.25 MHz |
+| 0.5 | 750 kHz | 1.33 bit/s/Hz | 1.5 MHz |
+| 1.0 | 1000 kHz | 1.0 bit/s/Hz | 2 MHz |
 
-**Spectral efficiency with QPSK:** $\eta = 2\log_2(4) / ((1+\alpha) \cdot 2B_{one-sided}) = 2/(1+\alpha)$ bit/s/Hz (using double-sided bandwidth).
+**Spectral efficiency with QPSK:** $\eta = \log_2(4) \cdot R_s / ((1+\alpha) R_s) = 2/(1+\alpha)$ bit/s/Hz (using double-sided bandwidth).
 
 ---
 
@@ -222,7 +224,7 @@ For $N_{span} = 6$ and $\alpha = 0.35$: $\epsilon_{ISI} \approx -50$ dB — acce
 | Parameter | Recommendation | Rationale |
 |---|---|---|
 | Roll-off $\alpha$ | 0.2–0.35 for bandwidth-limited; 0.5 for ease of implementation | Trade bandwidth for timing margin |
-| Filter span $N_{span}$ | 6–10 symbols | Beyond 8 symbols, residual ISI $< -60$ dB |
+| Filter span $N_{span}$ | 6–10 symbols | Residual ISI is roughly $-30$ to $-65$ dB for spans of 6–10 symbols at $\alpha = 0.25$–$0.5$; it does not fall monotonically with span, so check the combined response |
 | Oversampling $L$ | 4 minimum, 8 preferred | Higher $L$ more accurately approximates ideal frequency response |
 | Windowing | Kaiser ($\beta = 6\text{–}8$) on RRC coefficients | Reduces spectral sidelobe leakage from truncation |
 

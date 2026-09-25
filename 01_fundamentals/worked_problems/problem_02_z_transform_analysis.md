@@ -127,7 +127,7 @@ Numerically:
 
 $$|H(e^{j\pi/4})| \approx \frac{1.400}{0.359} \approx 3.90$$
 
-The magnitude response peaks near $\omega = \pi/4$ due to the nearby poles.
+The magnitude response peaks near $\omega = \pi/4$ due to the nearby poles. (Numerically, the true peak is $|H| \approx 4.0$ at $\omega \approx 0.22\pi$, slightly below the pole angle, because the zeros and the conjugate pole also shape the response.)
 
 ---
 
@@ -179,9 +179,9 @@ More precisely:
 Moving around the unit circle from $\omega = 0$ to $\omega = \pi$:
 
 - **$\omega = 0$ (DC):** Distance from evaluation point $(1,0)$ to poles $(0.5\pm 0.5j)$ is moderate. Zero at $(-0.5, 0)$ is far. Gain = 3.0.
-- **$\omega = \pi/4$:** Closest approach to the poles. Distance to each pole minimised. Gain peaks at ~3.9.
+- **$\omega = \pi/4$:** Closest approach to the pole $p_1$. Gain $\approx 3.9$, close to the peak of $\approx 4.0$ at $\omega \approx 0.22\pi$.
 - **$\omega = \pi/2$:** Moving away from poles. Gain decreasing.
-- **$\omega = \pi$ (Nyquist):** Close to the zero at $z = -0.5$ (on the real axis). Small denominator distance (poles are far), zero is close. Gain = 0.2.
+- **$\omega = \pi$ (Nyquist):** Close to the zero at $z = -0.5$ (on the real axis). Large distance to the poles, zero is close. Gain = 0.2.
 
 The filter has a **lowpass-like character** with a resonance peak near $\omega = \pi/4$ (corresponding to $f = f_s/8$).
 
@@ -262,5 +262,5 @@ From the formula: $h[1] = 2.236 \times 0.7071 \times \cos(\pi/4 - 0.3524\pi) = 2
 | BIBO stable | Yes (all poles inside unit circle) |
 | DC gain $\|H(e^{j0})\|$ | 3.0 (9.54 dB) |
 | Nyquist gain $\|H(e^{j\pi})\|$ | 0.2 ($-14$ dB) |
-| Peak gain near | $\omega = \pi/4$ ($\approx 3.9$) |
+| Peak gain near | $\omega \approx 0.22\pi$, just below the pole angle $\pi/4$ ($\approx 4.0$) |
 | Filter character | Lowpass with resonance at $f_s/8$ |

@@ -159,7 +159,7 @@ D. Perfect time-frequency resolution can be achieved by choosing an appropriate 
 
 A. $L / N_{total}$ (same as the basic averaged periodogram)  
 B. $8/3$ times worse than the basic averaged periodogram due to window power loss  
-C. $8/3$ times the number of non-overlapping segments (approximately $8 N_{total} / (3L)$ effective averages)  
+C. About $1.9 N_{total} / L$ effective averages — nearly twice the number of non-overlapping segments  
 D. Exactly $N_{total} / L$ (identical to non-overlapping segments)
 
 ---
@@ -273,7 +273,7 @@ The periodogram is computed from a finite-length record, equivalent to multiplyi
 
 **Q13 — Answer: D (Kaiser window with large $\beta$)**
 
-When a weak tone sits close in frequency to a strong tone, the key requirement is very low sidelobes to prevent the strong tone's leakage from masking the weak one. The Kaiser window has an adjustable parameter $\beta$ that directly controls the sidelobe level: larger $\beta$ gives lower sidelobes (and a wider mainlobe). For 60 dB dynamic range, a Kaiser window with $\beta \approx 6$–8 achieves sidelobes around $-70$ to $-80\ \text{dB}$. The rectangular window (A) has the worst sidelobes at $-13\ \text{dB}$. Hann (B) achieves about $-32\ \text{dB}$. Hamming (C) achieves about $-43\ \text{dB}$. All would fail to prevent the strong tone from masking the weak one at 60 dB separation.
+When a weak tone sits close in frequency to a strong tone, the key requirement is very low sidelobes to prevent the strong tone's leakage from masking the weak one. The Kaiser window has an adjustable parameter $\beta$ that directly controls the sidelobe level: larger $\beta$ gives lower sidelobes (and a wider mainlobe). For 60 dB dynamic range, a Kaiser window with $\beta \approx 9$–11 achieves sidelobes around $-66$ to $-82\ \text{dB}$ ($\beta = 8$ gives only about $-59\ \text{dB}$). The rectangular window (A) has the worst sidelobes at $-13\ \text{dB}$. Hann (B) achieves about $-32\ \text{dB}$. Hamming (C) achieves about $-43\ \text{dB}$. All would fail to prevent the strong tone from masking the weak one at 60 dB separation.
 
 ---
 
@@ -291,7 +291,7 @@ The Heisenberg–Gabor uncertainty principle from quantum mechanics has a direct
 
 **Q16 — Answer: C**
 
-For Welch's method with 50% overlap and a Hann window: the number of segments is approximately $K \approx 2N_{total}/L - 1 \approx 2N_{total}/L$. Each overlapping segment is not fully independent, but due to the Hann window weighting, the effective number of independent averages is approximately $8K/3$ per unit of $K$. More precisely, the variance reduction factor is approximately $8N_{total}/(3L)$ — slightly less than a factor of $2N_{total}/L$ from full independence, reduced by $8/3$ times due to the window. Option A ($L/N_{total}$) is the inverse of the correct factor. Option B confuses the window power loss as a variance increase rather than understanding it modifies the effective averaging count. Option D ignores the benefit of overlapping.
+For Welch's method with 50% overlap and a Hann window, the number of segments is $K \approx 2N_{total}/L$. Overlapping segments are correlated, but only weakly: for a Hann window at 50% overlap the overlap correlation is $c = \sum_n w[n]w[n+L/2] / \sum_n w^2[n] = 1/6$. Welch's variance formula then gives a variance of about $(1 + 2c^2)/K = 1.056/K$, i.e. about $K/1.056 \approx 1.9\,N_{total}/L$ effective independent averages — nearly the full benefit of the $2N_{total}/L$ segments, and almost twice the $N_{total}/L$ of non-overlapping segments. Option A ($L/N_{total}$) is the inverse of a variance-reduction factor and ignores the overlap. Option B confuses the window's power loss (which is corrected by normalisation) with a variance increase. Option D ignores the benefit of overlapping.
 
 ---
 

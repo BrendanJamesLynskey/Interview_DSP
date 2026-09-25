@@ -52,7 +52,7 @@ $$\Delta f = f_{stop} - f_p = 3{,}000\,\text{Hz}$$
 
 **Passband ripple** ($R_p = 0.1\,\text{dB}$):
 
-$$\delta_p = 10^{R_p/20} - 1 = 10^{0.005} - 1 \approx 0.01153$$
+$$\delta_p = 10^{R_p/20} - 1 = 10^{0.005} - 1 \approx 0.01158$$
 
 (so the passband gain is in $[1 - \delta_p, 1 + \delta_p]$)
 
@@ -64,7 +64,7 @@ $$\delta_s = 10^{-A_s/20} = 10^{-3} = 0.001$$
 
 | Parameter | Hz | Rad/sample | Amplitude |
 |---|---|---|---|
-| Passband edge $f_p$ | 8,000 | $\pi/3$ | $\delta_p = 0.01153$ |
+| Passband edge $f_p$ | 8,000 | $\pi/3$ | $\delta_p = 0.01158$ |
 | Stopband edge $f_{stop}$ | 11,000 | $11\pi/24$ | $\delta_s = 0.001$ |
 | Transition BW | 3,000 | $\pi/8$ | — |
 
@@ -78,21 +78,21 @@ $$N \approx \frac{-20\log_{10}(\sqrt{\delta_p\,\delta_s}) - 13}{14.6\,\Delta f/f
 
 Computing:
 
-$$\sqrt{\delta_p\,\delta_s} = \sqrt{0.01153 \times 0.001} = \sqrt{1.153 \times 10^{-5}} = 3.396 \times 10^{-3}$$
+$$\sqrt{\delta_p\,\delta_s} = \sqrt{0.01158 \times 0.001} = \sqrt{1.158 \times 10^{-5}} = 3.403 \times 10^{-3}$$
 
-$$-20\log_{10}(3.396 \times 10^{-3}) = -20 \times (-2.469) = 49.37\,\text{dB}$$
+$$-20\log_{10}(3.403 \times 10^{-3}) = -20 \times (-2.468) = 49.36\,\text{dB}$$
 
-$$N \approx \frac{49.37 - 13}{14.6 \times 3000/48000} + 1 = \frac{36.37}{0.9125} + 1 \approx 41.8 \Rightarrow N = 43$$
+$$N \approx \frac{49.36 - 13}{14.6 \times 3000/48000} + 1 = \frac{36.36}{0.9125} + 1 \approx 40.8 \Rightarrow N = 41$$
 
 ### Bellanger's Formula
 
 $$N \approx \frac{2}{3}\log_{10}\!\left(\frac{1}{10\,\delta_p\,\delta_s}\right) \cdot \frac{f_s}{\Delta f}$$
 
-$$= \frac{2}{3}\log_{10}\!\left(\frac{1}{10 \times 0.01153 \times 0.001}\right) \cdot \frac{48000}{3000}$$
+$$= \frac{2}{3}\log_{10}\!\left(\frac{1}{10 \times 0.01158 \times 0.001}\right) \cdot \frac{48000}{3000}$$
 
-$$= \frac{2}{3}\log_{10}(8672) \times 16 = \frac{2}{3} \times 3.938 \times 16 \approx 42.0$$
+$$= \frac{2}{3}\log_{10}(8636) \times 16 = \frac{2}{3} \times 3.936 \times 16 \approx 42.0$$
 
-Both formulas agree: the filter requires approximately **43 taps** (even-numbered taps give Type II; use $N = 43$ for a Type I filter with group delay = 21 samples).
+Both formulas give about 41–42 taps. They are only estimates: an actual Parks-McClellan design with 41 taps reaches just 58.3 dB of stopband attenuation, while 43 taps meets the specification (61.2 dB, passband ripple $\pm 0.0099$). The filter therefore requires **43 taps** (even-numbered taps give Type II; use $N = 43$ for a Type I filter with group delay = 21 samples).
 
 ---
 
@@ -120,11 +120,11 @@ $$W(\omega) = \begin{cases}
 \delta_p/\delta_s & \omega \in \text{stopband}
 \end{cases}$$
 
-Setting $W_{stop} = \delta_p/\delta_s = 0.01153/0.001 = 11.53$ tells the algorithm to make the stopband ripple $11.53\times$ smaller than the passband ripple.
+Setting $W_{stop} = \delta_p/\delta_s = 0.01158/0.001 = 11.58$ tells the algorithm to make the stopband ripple $11.58\times$ smaller than the passband ripple.
 
 ### Equiripple Property
 
-The optimal filter achieves the **Chebyshev equiripple property**: the weighted error alternates between $+\epsilon_{opt}$ and $-\epsilon_{opt}$ at exactly $L + 2$ or more frequencies (where $L = (N+1)/2 = 22$ for a 43-tap Type I filter).
+The optimal filter achieves the **Chebyshev equiripple property**: the weighted error alternates between $+\epsilon_{opt}$ and $-\epsilon_{opt}$ at $L + 2$ or more frequencies (where $L = (N-1)/2 = 21$ for a 43-tap Type I filter, whose amplitude response has $L + 1 = 22$ cosine coefficients).
 
 The oscillation means:
 - In the passband: the amplitude alternates between $1 + \epsilon_{opt}$ and $1 - \epsilon_{opt}$
@@ -192,7 +192,7 @@ The Parks-McClellan design will show alternating extrema in both bands:
 fs = 48e3;                  % Sample rate (Hz)
 fp = 8e3;                   % Passband edge (Hz)
 fstop = 11e3;               % Stopband edge (Hz)
-delta_p = 0.01153;          % Passband ripple amplitude
+delta_p = 0.01158;          % Passband ripple amplitude
 delta_s = 0.001;            % Stopband ripple amplitude
 
 % Normalised frequency vector (fractions of Nyquist = fs/2)
@@ -202,10 +202,10 @@ f = [fp fstop] / (fs/2);   % [0.3333, 0.4583]
 d = [1 0];
 
 % Weighting: relative emphasis on each band
-W = [delta_s/delta_p 1];   % weight passband by delta_s/delta_p = 0.0867
+W = [delta_s/delta_p 1];   % weight passband by delta_s/delta_p = 0.0864
 
 % --- OR equivalently ---
-W2 = [1 delta_p/delta_s];  % weight stopband by delta_p/delta_s = 11.53
+W2 = [1 delta_p/delta_s];  % weight stopband by delta_p/delta_s = 11.58
 
 % firpm(order, freq_edges, desired_amplitudes, weights)
 % Note: firpm takes the filter ORDER (N-1), not the number of taps N
@@ -231,7 +231,7 @@ ylim([-80 5]); grid on;
 | `N_taps - 1` | `42` | Filter ORDER (= taps minus 1) |
 | `[0, f, 1]` | `[0, 0.333, 0.458, 1]` | Frequency band edges, normalised to Nyquist |
 | `[1, 1, 0, 0]` | `[1 1 0 0]` | Desired amplitude at each edge: passband=1, stopband=0 |
-| `W` | `[1, 11.53]` | Relative weight per band; stopband weighted higher |
+| `W` | `[0.0864, 1]` (equivalently `[1, 11.58]`) | Relative weight per band; stopband weighted higher |
 
 ---
 
@@ -241,19 +241,19 @@ ylim([-80 5]); grid on;
 
 $$\beta = 0.1102(60 - 8.7) = 5.65$$
 
-$$N_{Kaiser} \approx \frac{60 - 8}{2.285 \times (\pi/8)} = \frac{52}{0.898} \approx 58 \text{ taps}$$
+$$M_{Kaiser} \approx \frac{60 - 8}{2.285 \times (\pi/8)} = \frac{52}{0.898} \approx 58 \text{ (order)} \Rightarrow 59 \text{ taps}$$
 
-| Property | Parks-McClellan (43 taps) | Kaiser Window (58 taps) |
+| Property | Parks-McClellan (43 taps) | Kaiser Window (59 taps) |
 |---|---|---|
-| Filter order | 42 | 57 |
-| Number of taps | 43 | 58 |
+| Filter order | 42 | 58 |
+| Number of taps | 43 | 59 |
 | Passband ripple | Equiripple (all equal) | Varies — may have larger peak |
 | Stopband attenuation | Equiripple, exactly 60 dB | Approximately 60 dB |
-| Computation (MACs/sample) | 22 (exploit symmetry) | 29 |
+| Computation (MACs/sample) | 22 (exploit symmetry) | 30 |
 | Design complexity | Iterative algorithm | Closed-form formula |
 | Optimality | Yes — minimum order for spec | No — sub-optimal |
 
-**Parks-McClellan advantage:** For the same specifications, Parks-McClellan achieves the minimum filter order. Here it needs 43 taps vs the Kaiser window's 58 — a 26% reduction. This translates directly to 26% fewer multiply-accumulate operations per output sample.
+**Parks-McClellan advantage:** For the same specifications, Parks-McClellan achieves the minimum filter order. Here it needs 43 taps vs the Kaiser window's 59 — a 27% reduction. This translates directly to about 27% fewer multiply-accumulate operations per output sample.
 
 **Kaiser window advantage:** Simple to design without iterative computation. The MATLAB `kaiserord` + `firwin` workflow is a one-liner and always produces a valid design (Parks-McClellan can occasionally converge slowly for very demanding specifications).
 
@@ -271,6 +271,6 @@ $$N_{Kaiser} \approx \frac{60 - 8}{2.285 \times (\pi/8)} = \frac{52}{0.898} \app
 | Filter order (estimate) | $N \approx 43$ taps |
 | Filter type | Type I (symmetric, odd) |
 | Group delay | 21 samples = 0.4375 ms |
-| Passband ripple | $\delta_p \leq 0.01153$ ($\leq 0.1\,\text{dB}$) |
+| Passband ripple | $\delta_p \leq 0.01158$ ($\leq 0.1\,\text{dB}$) |
 | Stopband attenuation | $\delta_s \leq 0.001$ ($\geq 60\,\text{dB}$) |
-| Weighting ratio | $\delta_p/\delta_s = 11.53$ |
+| Weighting ratio | $\delta_p/\delta_s = 11.58$ |

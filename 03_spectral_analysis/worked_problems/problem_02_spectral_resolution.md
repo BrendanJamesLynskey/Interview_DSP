@@ -46,7 +46,7 @@ The separation $\Delta f = 20$ Hz $= 1.28$ bins. This just barely exceeds one bi
 
 ## Part 2: Resolution with Hann Window
 
-The Hann window has a mainlobe width of **2 bins** (half-width 1 bin per side). Two components are resolvable when their separation exceeds the mainlobe half-width on each side — i.e., they must be separated by at least **2 bins**:
+The Hann window's mainlobe is twice as wide as the rectangular window's: **4 bins** null-to-null (half-width 2 bins per side), versus 2 bins. A common rule of thumb is therefore that the components must be separated by at least **2 bins**:
 
 $$\Delta f \geq 2 \cdot \frac{f_s}{N}$$
 
@@ -88,7 +88,7 @@ $k_1 = 256$ is an exact bin. $k_2 \approx 261.1$, between bins 261 and 262. The 
 
 ### Case C: $N = 512$, Hann Window
 
-Mainlobe half-width: 1 bin per side (total 4-bin mainlobe from first null to first null).
+Mainlobe half-width: 2 bins per side (total 4-bin mainlobe from first null to first null).
 Separation: 1.28 bins. **Well within the 4-bin mainlobe — components completely unresolved.**
 
 ### Case D: $N = 2048$, Hann Window
@@ -251,11 +251,13 @@ plt.show()
 **Expected console output:**
 
 ```
-L= 512, Rectangular : bin=15.62 Hz, sep=1.28 bins, resolved=False
+L= 512, Rectangular : bin=15.62 Hz, sep=1.28 bins, resolved=True
 L= 512, Hann        : bin=15.62 Hz, sep=1.28 bins, resolved=False
-L=2048, Rectangular : bin=3.91 Hz,  sep=5.12 bins, resolved=True
-L=2048, Hann        : bin=3.91 Hz,  sep=5.12 bins, resolved=True
+L=2048, Rectangular : bin=3.91 Hz, sep=5.12 bins, resolved=True
+L=2048, Hann        : bin=3.91 Hz, sep=5.12 bins, resolved=True
 ```
+
+(The simple 1-bin criterion flags $L = 512$ rectangular as resolved; as Part 3 explains, with only 1.28 bins of separation it is marginal in practice.)
 
 ---
 

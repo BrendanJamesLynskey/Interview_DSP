@@ -146,7 +146,7 @@ D. High-order direct form filters consuming excessive FPGA LUT resources.
 **Q16.** In Q1.15 format (1 sign bit, 15 fractional bits), the multiplication of two Q1.15 numbers yields a Q2.30 result in 32 bits. Before storing back to Q1.15, a programmer shifts right by 15 bits. What additional step is often needed to maintain accuracy?
 
 A. A left-shift by 1 to compensate for the sign bit alignment.  
-B. Rounding the bit shifted out (adding 1 to the LSB position before truncating) to reduce truncation bias and reduce quantisation noise power by 3 dB on average.  
+B. Rounding (adding half an output LSB before truncating) to remove the truncation bias, cutting the total error power by about 6 dB.  
 C. Negating the result if the sign bit of the original product is 1.  
 D. Dividing by 2 to account for the scaling difference between Q1.15 and Q2.30.
 
@@ -156,7 +156,7 @@ D. Dividing by 2 to account for the scaling difference between Q1.15 and Q2.30.
 
 A. 16 bits  
 B. 22 bits  
-C. 34 bits  
+C. 28 bits  
 D. 34 bits — using $B_{out} = B_{in} + N\lceil\log_2 R\rceil = 16 + 3 \times 6 = 34$ bits
 
 ---
@@ -168,7 +168,7 @@ D. 34 bits — using $B_{out} = B_{in} + N\lceil\log_2 R\rceil = 16 + 3 \times 6
 | 1 | A |
 | 2 | B |
 | 3 | B |
-| 4 | C |
+| 4 | B |
 | 5 | B |
 | 6 | B |
 | 7 | B |
@@ -215,9 +215,9 @@ In dB: $10\log_{10}(1.5) + 20b\log_{10}(2) = 1.76 + 6.02b\ \text{dB}$. Option A 
 
 ---
 
-**Q4 — Answer: C**
+**Q4 — Answer: B**
 
-When two Q$f$ numbers are multiplied, the result has $2f$ fractional bits and (for 16-bit inputs) is 32 bits wide with its binary point after bit $2f-1$ (from the LSB). To align the result back to Q$f$, you right-shift the 32-bit product by $f$ bits. After shifting, the upper 16 bits (bits $[31:16]$ of the shifted result, or equivalently bits $[31+f:16+f]$ of the original product) contain the Q$f$ result. Option B (lower 16 bits after shifting) is wrong — the integer and overflow bits are in the upper portion. Option A (upper 16 bits without shifting) is wrong — it extracts bits at the wrong binary point position. Option D (left-shift) would overflow massively.
+When two Q$f$ numbers are multiplied, the result has $2f$ fractional bits and (for 16-bit inputs) is 32 bits wide with $2f$ fractional bits. To align the result back to Q$f$, you right-shift the 32-bit product by $f$ bits. After shifting, the Q$f$ result sits in the **lower** 16 bits (bits $[15:0]$ of the shifted value, i.e. bits $[15+f:f]$ of the original product); the bits above are sign extension, or overflow if the result does not fit. Example in Q15: $0.5 \times 0.5$ is $16384 \times 16384 = \texttt{0x10000000}$; shifting right by 15 gives $\texttt{0x00002000} = 8192 = 0.25$ in Q15, in the lower 16 bits. Option C (upper 16 bits after shifting) would return 0 here. Option A (upper 16 bits without shifting) takes the wrong bits unless the product is first shifted left by $16 - f$ (for Q15, a left shift by 1 then the upper half is an equivalent method). Option D (left-shift by $f$) would overflow massively.
 
 ---
 
@@ -243,9 +243,9 @@ CORDIC works by iteratively rotating a 2D vector using a sequence of fixed angle
 
 Each integrator in a CIC filter accumulates up to $R^N$ times the input value (DC gain is $R^N$). The bit growth required is the number of additional bits needed to represent $R^N$ times the input range:
 
-$$B_{growth} = \lceil \log_2(R^N) \rceil = N \lceil \log_2(R) \rceil$$
+$$B_{growth} = \lceil \log_2(R^N) \rceil = \lceil N \log_2 R \rceil \leq N \lceil \log_2(R) \rceil$$
 
-Total width: $B_{CIC} = B_{in} + N\lceil\log_2 R\rceil$. For example, $N=3$, $R=64$: $B_{growth} = 3 \times 6 = 18$ additional bits. Option A ($N \cdot R$) is far too large — it applies a linear rather than logarithmic growth. Option B omits the ceiling function; since bit widths must be integers, the ceiling is essential. Option D would require an astronomically large number of bits.
+Total width: $B_{CIC} = B_{in} + N\lceil\log_2 R\rceil$ is always safe, and equals Hogenauer's exact minimum $B_{in} + \lceil N\log_2 R\rceil$ when $R$ is a power of 2 (for other $R$ it may be a bit or two wider than necessary). For example, $N=3$, $R=64$: $B_{growth} = 3 \times 6 = 18$ additional bits. Option A ($N \cdot R$) is far too large — it applies a linear rather than logarithmic growth. Option B, $N\log_2 R$ without any rounding, is the exact growth before rounding up; it is not in general an integer number of bits. Option D would require an astronomically large number of bits.
 
 ---
 
@@ -263,7 +263,7 @@ Magnitude truncation means rounding the state variable toward zero (i.e., trunca
 
 **Q11 — Answer: B**
 
-For a pole pair at $re^{\pm j\omega_0}$, the feedback coefficients are $a_1 = -2r\cos\omega_0$ and $a_2 = r^2$. At $\omega_0 = \pi/2$: $a_1 = 0$ and $a_2 = r^2 \approx 0.9998$. The pole radius is extremely sensitive to $a_2$: a change $\delta a_2$ moves the pole radius by $\delta r = \delta a_2 / (2r) \approx \delta a_2 / 2$. With 16-bit precision, the smallest representable change in $a_2$ is $2^{-15} \approx 3 \times 10^{-5}$, causing a pole radius perturbation of $\sim 1.5 \times 10^{-5}$. Since $r = 0.9999$, this represents a 15% relative perturbation to $(1-r) = 0.0001$ — enormous. The pole can easily move outside the unit circle, causing instability. Option A is wrong — rational approximations can represent these coefficients. Options C and D are false.
+For a pole pair at $re^{\pm j\omega_0}$, the feedback coefficients are $a_1 = -2r\cos\omega_0$ and $a_2 = r^2$. At $\omega_0 = \pi/2$: $a_1 = 0$ and $a_2 = r^2 \approx 0.9998$. The pole radius is extremely sensitive to $a_2$: a change $\delta a_2$ moves the pole radius by $\delta r = \delta a_2 / (2r) \approx \delta a_2 / 2$. With 16-bit precision, the smallest representable change in $a_2$ is $2^{-15} \approx 3 \times 10^{-5}$, causing a pole radius perturbation of $\sim 1.5 \times 10^{-5}$. Since $r = 0.9999$, this represents a 15% relative perturbation to $(1-r) = 0.0001$ — enormous, changing the resonance bandwidth and gain markedly. Poles even closer to the unit circle, or coarser coefficient formats, can be pushed onto or outside it, causing instability. Option A is wrong — rational approximations can represent these coefficients. Options C and D are false.
 
 ---
 
@@ -293,7 +293,7 @@ A high-order direct-form IIR filter's transfer function is $H(z) = B(z)/A(z)$ wh
 
 **Q16 — Answer: B**
 
-After multiplying two Q1.15 numbers, the 32-bit result has 30 fractional bits (bits $[29:0]$ below the binary point, with the product binary point between bits $[29:30]$). Right-shifting by 15 brings the binary point to bit 15 (Q1.15 alignment). However, simply discarding the lower 15 bits introduces a truncation error biased toward negative values (always rounds toward $-\infty$ in two's complement). Rounding to nearest — adding $2^{14}$ (the value of bit 14, which is the first discarded bit) before truncating — makes the quantisation error zero-mean and reduces quantisation noise power by up to 3 dB compared to truncation. Option A (left-shift by 1) would cause overflow. Option C (negate based on sign bit) confuses sign handling with rounding. Option D (divide by 2) would halve the signal level unnecessarily.
+After multiplying two Q1.15 numbers, the 32-bit result has 30 fractional bits (bits $[29:0]$ below the binary point, with the product binary point between bits $[29:30]$). Right-shifting by 15 brings the binary point to bit 15 (Q1.15 alignment). However, simply discarding the lower 15 bits introduces a truncation error biased toward negative values (always rounds toward $-\infty$ in two's complement). Rounding to nearest — adding $2^{14}$ (the value of bit 14, which is the first discarded bit) before truncating — makes the quantisation error zero-mean. The error variance stays $\Delta^2/12$, but the total error power (including the $-\Delta/2$ bias) falls from $\Delta^2/3$ to $\Delta^2/12$, about 6 dB. Option A (left-shift by 1) would cause overflow. Option C (negate based on sign bit) confuses sign handling with rounding. Option D (divide by 2) would halve the signal level unnecessarily.
 
 ---
 
@@ -306,4 +306,4 @@ Using the CIC bit growth formula $B_{out} = B_{in} + N\lceil\log_2 R\rceil$:
 
 $$B_{out} = 16 + 3 \times 6 = 16 + 18 = 34\ \text{bits}$$
 
-Options A (16 bits) and B (22 bits) are insufficient — overflow would occur. Option C says 34 bits but without showing the derivation, while option D explicitly states the derivation with the correct result. The 34-bit integrators must be implemented in hardware (e.g., using multiple DSP slices or wide adder trees on the FPGA fabric). After the CIC, a compensation FIR filter typically truncates the word width back to 16 or 24 bits with appropriate rounding.
+Options A (16 bits), B (22 bits) and C (28 bits, which allows growth for only two stages: $16 + 2 \times 6$) are insufficient — overflow would occur. The 34-bit integrators must be implemented in hardware (e.g., using multiple DSP slices or wide adder trees on the FPGA fabric). After the CIC, a compensation FIR filter typically truncates the word width back to 16 or 24 bits with appropriate rounding.

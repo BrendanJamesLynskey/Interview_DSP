@@ -50,9 +50,9 @@ $$\mathbf{R} - \lambda\mathbf{I} = \begin{bmatrix} 2.778-\lambda & 2.222 & 1.778
 
 **Numerical values** (computed via characteristic polynomial or direct numerical method):
 
-$$\lambda_1 \approx 7.347, \quad \lambda_2 = 2.778 - \frac{20}{9} = 0.556, \quad \lambda_3 \approx 0.430$$
+$$\lambda_1 \approx 6.933, \quad \lambda_2 = 1.000, \quad \lambda_3 \approx 0.401$$
 
-**Verification:** $\lambda_1 + \lambda_2 + \lambda_3 \approx 7.347 + 0.556 + 0.430 = 8.333 = \text{tr}(\mathbf{R})$ \checkmark
+**Verification:** $\lambda_1 + \lambda_2 + \lambda_3 \approx 6.933 + 1.000 + 0.401 = 8.333 = \text{tr}(\mathbf{R})$ \checkmark
 
 Let us derive these more carefully. For a $3\times3$ Toeplitz matrix with elements $a = R_x[0]$, $b = R_x[1]$, $c = R_x[2]$:
 
@@ -305,8 +305,8 @@ mu = 0.1
 
 1. The eigenvalue spread $\chi \approx 17.3$ of the AR(1) input means the slowest mode converges 17 times slower than the fastest.
 
-2. A 5x increase in $\mu$ (from 0.02 to 0.1) gives 5x faster convergence but at the cost of a 7x larger misadjustment (nonlinear due to the denominator in the exact formula).
+2. A 5x increase in $\mu$ (from 0.02 to 0.1) gives 5x faster convergence but at the cost of a ~8x larger misadjustment (nonlinear due to the denominator in the exact formula).
 
-3. The practical step-size range for this problem is approximately $\mu \in [0.005, 0.028]$: below 0.005 convergence is too slow for most applications; above 0.028 misadjustment exceeds 10%.
+3. The practical step-size range for this problem is approximately $\mu \in [0.005, 0.028]$: below 0.005 convergence is too slow for most applications; above about 0.022 misadjustment exceeds 10% (exact formula; the approximation gives 0.024).
 
-4. NLMS with $\tilde\mu = 0.1$ would achieve convergence in $\approx 12.5$ samples with misadjustment $\approx \tilde\mu N/2 = 0.15 = 15\%$, normalised automatically to the input power.
+4. NLMS with $\tilde\mu = 0.1$ behaves like LMS with $\mu = \tilde\mu/\text{tr}(\mathbf{R}) \approx 0.012$: misadjustment $\approx \tilde\mu/(2 - \tilde\mu) \approx 5.3\%$ and slowest time constant $\approx 1/(2 \times 0.012 \times 0.401) \approx 104$ samples, normalised automatically to the input power.

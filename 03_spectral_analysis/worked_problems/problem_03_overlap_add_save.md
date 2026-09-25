@@ -226,27 +226,27 @@ Let:
 
 $$C_{\text{direct}} = (L + M - 1) \cdot M \approx LM \quad \text{(multiplications)}$$
 
-**Overlap-add / Overlap-save.** Per block:
-- 2 forward FFTs of length $N_{\text{FFT}}$: $2 \times \frac{N_{\text{FFT}}}{2}\log_2 N_{\text{FFT}}$ complex multiplications (but one FFT is of $h$ and is precomputed)
-- 1 inverse FFT
+**Overlap-add / Overlap-save.** Per block ($H[k]$, the FFT of $h$, is computed once in advance):
+- 1 forward FFT of length $N_{\text{FFT}}$: $\frac{N_{\text{FFT}}}{2}\log_2 N_{\text{FFT}}$ complex multiplications
 - $N_{\text{FFT}}$ complex multiplications ($X[k] \cdot H[k]$)
-- Per-block cost: $\frac{3}{2} N_{\text{FFT}} \log_2 N_{\text{FFT}} + N_{\text{FFT}}$
+- 1 inverse FFT: $\frac{N_{\text{FFT}}}{2}\log_2 N_{\text{FFT}}$
+- Per-block cost: $N_{\text{FFT}} \log_2 N_{\text{FFT}} + N_{\text{FFT}}$
 
-Over $K$ blocks (ignoring the precomputed $H[k]$):
+Over $K$ blocks:
 
-$$C_{\text{FFT}} \approx K \left(\frac{3}{2} N_{\text{FFT}} \log_2 N_{\text{FFT}} + N_{\text{FFT}}\right) = \frac{L}{B}\left(\frac{3}{2} N_{\text{FFT}} \log_2 N_{\text{FFT}} + N_{\text{FFT}}\right)$$
+$$C_{\text{FFT}} \approx K \left(N_{\text{FFT}} \log_2 N_{\text{FFT}} + N_{\text{FFT}}\right) = \frac{L}{B}\left(N_{\text{FFT}} \log_2 N_{\text{FFT}} + N_{\text{FFT}}\right)$$
 
 Since $N_{\text{FFT}} \approx B + M$ and $K = L/B$:
 
-$$C_{\text{FFT}} \approx L \cdot \frac{N_{\text{FFT}}}{B} \left(\frac{3}{2}\log_2 N_{\text{FFT}} + 1\right)$$
+$$C_{\text{FFT}} \approx L \cdot \frac{N_{\text{FFT}}}{B} \left(\log_2 N_{\text{FFT}} + 1\right)$$
 
 ### Crossover Point
 
 The FFT method is more efficient when $C_{\text{FFT}} < C_{\text{direct}}$:
 
-$$\frac{N_{\text{FFT}}}{B} \left(\frac{3}{2}\log_2 N_{\text{FFT}} + 1\right) < M$$
+$$\frac{N_{\text{FFT}}}{B} \left(\log_2 N_{\text{FFT}} + 1\right) < M$$
 
-For $B \gg M$: $N_{\text{FFT}} \approx B$, so condition becomes $\frac{3}{2}\log_2 B < M$, i.e., $B > 2^{2M/3}$.
+For $B \gg M$: $N_{\text{FFT}} \approx B$, so the condition becomes $\log_2 B + 1 < M$: the filter must be longer than about $\log_2 B + 1$ taps. (This counts complex multiplications against real ones; since a complex multiply costs 3–4 real multiplies, the practical threshold on $M$ is several times higher.)
 
 **Optimal block size** minimises per-sample cost:
 
@@ -259,15 +259,15 @@ Taking derivative and setting to zero (approximately): $B_{\text{opt}} \approx M
 | Method | Operations | (for $L=8$, $M=3$) |
 |---|---|:-:|
 | Direct | $LM = 8 \times 3 = 24$ real mults | 24 |
-| OLA ($B=4$, $N_{\text{FFT}}=8$) | $2 \times (4 \times \frac{8}{2}\log_2 8 + 8) \approx 2 \times (48 + 8)$ | 112 |
+| OLA ($B=4$, $N_{\text{FFT}}=8$) | $2 \times (8\log_2 8 + 8) = 2 \times (24 + 8)$ complex mults | 64 |
 
 For this tiny example, direct convolution wins. The FFT approach overhead is only justified for large $L$:
 
-| $L$ | $M$ | Direct ($LM$) | FFT ($B=256$, $N=512$) | FFT wins? |
+| $L$ | $M$ | Direct ($LM$) | FFT ($B=256$; $K$ blocks $\times (N\log_2 N + N)$) | FFT wins? |
 |:-:|:-:|:-:|:-:|:-:|
-| 1000 | 64 | 64000 | $\approx 3900 \times 4 \approx 16000$ | Yes |
-| 10000 | 512 | 5000000 | $\approx 10000/256 \times 6000 \approx 234000$ | Yes |
-| 10000 | 10 | 100000 | $\approx 585000$ | No |
+| 1000 | 64 | 64000 | $N=512$: $4 \times 5120 = 20480$ | Yes |
+| 10000 | 512 | 5120000 | $N=1024$: $40 \times 11264 = 450560$ | Yes |
+| 10000 | 10 | 100000 | $N=512$: $40 \times 5120 = 204800$ | No |
 
 **Rule of thumb:** FFT-based convolution is preferred when $M \gtrsim 64$ and $L \gg M$.
 
@@ -414,7 +414,7 @@ OLS matches:  True
 | **Output handling** | Valid output blocks **added** at overlapping edges | Discard first $M-1$ outputs (keep last $B$) |
 | **FFT length** | $N_{\text{FFT}} \geq B + M - 1$ | $N_{\text{FFT}} \geq B + M - 1$ |
 | **Output samples per block** | $B + M - 1$ (with overlap region) | $B$ (exactly) |
-| **Complexity per output sample** | $\approx \frac{3}{2B} N_{\text{FFT}} \log_2 N_{\text{FFT}} + 1$ | Same |
+| **Complexity per output sample** | $\approx \frac{N_{\text{FFT}}}{B}\left(\log_2 N_{\text{FFT}} + 1\right)$ | Same |
 | **Initial condition** | No pre-pended zeros needed | Prepend $M-1$ zeros to initialise |
 | **Memory** | Need output buffer for overlap-add | Need input buffer of length $N_{\text{FFT}}$ |
 | **Preferred for** | One-shot processing, known-length signals | Real-time / streaming (no output buffer needed) |

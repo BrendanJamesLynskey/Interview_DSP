@@ -197,11 +197,11 @@ In hardware:
 - In a 32-bit DSP, a 32-bit accumulator easily accommodates this (16 + 9 = 25 < 32)
 - After the final comb stage, truncate to the desired output word length $B_{out}$
 
-**Output rounding:** If output is 16 bits and the accumulator is 25 bits, truncate the 9 LSBs. The truncation noise has power $\approx 2^{-18}$ (in units of full-scale). This is typically acceptable. If a higher-precision output is needed, use $B_{out} = 20$ bits and truncate 5 bits.
+**Output rounding:** If output is 16 bits and the accumulator is 25 bits, truncate the 9 LSBs. The truncation noise has power $\approx \Delta^2/12$ with $\Delta = 2^{-15}$ of full scale (the 16-bit output LSB), i.e. $\approx 2^{-33.6}$. This is typically acceptable. If a higher-precision output is needed, use $B_{out} = 20$ bits and truncate 5 bits.
 
 ### The Two's Complement Overflow Trick
 
-**Important implementation insight:** The integrators in a CIC filter can be implemented with **wrap-around overflow** (modular arithmetic — the default in most hardware) without corrupting the output, as long as the accumulators have the same bit width throughout the chain.
+**Important implementation insight:** The integrators in a CIC filter can be implemented with **wrap-around overflow** (modular arithmetic — the default in most hardware) without corrupting the output, as long as every register in the chain has the same bit width of at least $B_{in} + N\log_2 M$ bits (25 bits here).
 
 **Why:** The comb filter differences "undo" any wrap-around that happened during integration, as long as the overflow is consistent (two's complement). This is because the subtraction in the comb $y[n] - y[n-M]$ cancels the accumulated overflow:
 
@@ -209,7 +209,7 @@ $$\text{true difference} = (y_{true}[n] - y_{true}[n-M]) = (y_{overflowed}[n] - 
 
 This property holds because two's complement addition is modular, and subtraction of two modular quantities preserves the true difference if the true difference itself does not overflow the output word.
 
-**Practical consequence:** You do NOT need to expand the accumulator width if you use consistent two's complement arithmetic throughout — but you must then ensure the output word width of the comb is sufficient (25 bits in our case).
+**Practical consequence (Hogenauer's result):** The integrators' internal values grow without bound, but you do not need registers wide enough to hold them — wrap-around is harmless *given* that every integrator and comb register is $B_{in} + N\log_2 M = 25$ bits wide. That width is what guarantees the true output fits in the word, so the modular differences in the combs recover it exactly. With fewer than 25 bits the output itself overflows and is corrupted.
 
 ---
 
@@ -219,7 +219,7 @@ This property holds because two's complement addition is modular, and subtractio
 
 The droop compensator $C(z)$ should approximate the inverse of the CIC magnitude response over the passband $[0, f_{out}/2]$:
 
-$$|C(e^{j\omega})| \approx \frac{M^N}{|H_{CIC}(e^{j\omega})|} \cdot \frac{1}{M^N} = \left|\frac{\sin(\omega/2)}{\sin(\omega M/2)}\right|^N \quad \text{for } |\omega| \leq \pi/M$$
+$$|C(e^{j\omega})| \approx \frac{M^N}{|H_{CIC}(e^{j\omega})|} = \left|\frac{M\sin(\omega/2)}{\sin(\omega M/2)}\right|^N \quad \text{for } |\omega| \leq \pi/M$$
 
 At low frequencies ($\omega \ll \pi/M$): $\sin(\omega/2) \approx \omega/2$ and $\sin(\omega M/2) \approx \omega M/2$, so:
 
@@ -227,9 +227,9 @@ $$|C(e^{j\omega})| \approx 1 \quad \text{(flat near DC)}$$
 
 At the output Nyquist ($\omega = \pi/M$):
 
-$$|C(e^{j\pi/M})| \approx \frac{\sin(\pi/16)}{\sin(\pi/2)} = \sin(\pi/16)/1 \approx 0.195 \Rightarrow 1/0.195 \approx 5.1$$
+$$|C(e^{j\pi/M})| \approx \left(\frac{8\sin(\pi/16)}{\sin(\pi/2)}\right)^3 = (8 \times 0.19509)^3 = (1.5607)^3 \approx 3.80$$
 
-The compensation filter boosts by ~14 dB at the output Nyquist.
+The ideal compensation filter boosts by $20\log_{10}(3.80) \approx +11.6$ dB at the output Nyquist, exactly cancelling the droop from Part (c).
 
 ### Design Approach
 
@@ -239,37 +239,41 @@ The compensator operates at the **output rate** $f_{s,out}$ (after decimation). 
 
 The output rate normalisation: at the output rate, $\omega_{out} = M\,\omega_{in}$, so the output Nyquist is $\omega_{out} = \pi$.
 
-$$|C(e^{j\omega_{out}})| = \left(\frac{\pi/M}{\pi}\cdot\frac{\sin(\omega_{out}/(2M))\cdot M}{\sin(\omega_{out}/2)}\right)^{-N}$$
+$$|C(e^{j\omega_{out}})| = \left(\frac{M\sin(\omega_{out}/(2M))}{\sin(\omega_{out}/2)}\right)^{N}$$
 
 For a 5-tap (Type I) compensation FIR (odd length, symmetric), the design frequency points are:
 
 | $f/f_{out}$ | Target gain |
 |---|---|
 | 0 | 1.000 |
-| 0.25 | 1.070 |
-| 0.50 | $\approx 1.31$ |
+| 0.25 | 1.364 (+2.7 dB) |
+| 0.50 | $\approx 3.80$ (+11.6 dB) |
 
 ### Approximate 5-tap Compensator Coefficients
 
-Using Parks-McClellan targeting the inverse-sinc response over $[0, 0.5]$ at the output rate:
+A 5-tap filter cannot follow the steep rise of the inverse sinc all the way to Nyquist, so fit it (least squares, code below) over $[0, f_{out}/4]$ at the output rate:
 
-$$c[n] \approx \{-0.0116,\; -0.0536,\; 1.1325,\; -0.0536,\; -0.0116\}$$
+$$c[n] \approx \{0.0339,\; -0.2467,\; 1.4269,\; -0.2467,\; 0.0339\}$$
 
 **Verification:**
 
-DC gain: $\sum c[n] = -0.0116 - 0.0536 + 1.1325 - 0.0536 - 0.0116 = 1.002 \approx 1$ ✓ (near-unity DC)
+DC gain: $\sum c[n] = 0.0339 - 0.2467 + 1.4269 - 0.2467 + 0.0339 = 1.001 \approx 1$ ✓ (near-unity DC)
+
+Gain at $f_{out}/4$: $+2.66$ dB (target $+2.69$ dB). Gain at $f_{out}/2$: $\approx +6.0$ dB, short of the $+11.6$ dB a full inverse would need — acceptable when the band near output Nyquist is removed by later filtering; otherwise use more taps.
 
 The compensator has a slight high-frequency boost (the centre coefficient $> 1$, side coefficients negative) — characteristic of an inverse sinc response.
 
 ```python
 import numpy as np
-from scipy.signal import firls
+from scipy.signal import freqz
 
-def design_cic_compensator(N_cic, M, N_taps=5):
+def design_cic_compensator(N_cic, M, N_taps=5, f_edge=0.5):
     """
-    Design an N_taps-point FIR compensation filter for a CIC of order N_cic
-    and decimation factor M.
+    Design an N_taps-point (odd, symmetric) FIR compensation filter for a CIC
+    of order N_cic and decimation factor M.
     Filter operates at the OUTPUT rate.
+    Least-squares fit to the inverse CIC response over [0, f_edge]
+    (f normalised so that 1 = output Nyquist).
     Returns compensation FIR coefficients c[n].
     """
     # Frequency grid at output rate (0 to 1, where 1 = Nyquist)
@@ -282,30 +286,26 @@ def design_cic_compensator(N_cic, M, N_taps=5):
     cic_mag = np.abs(np.sin(M * omega_in_safe / 2) / np.sin(omega_in_safe / 2)) ** N_cic
     target = cic_mag[0] / cic_mag  # normalised to DC gain of 1
 
-    # Least-squares FIR design over the passband [0, 0.8] (leave some rolloff room)
-    passband_mask = f_grid <= 0.8
-    f_bands = [0, 0.8, 0.9, 1.0]
-    d_bands = [target[np.argmin(np.abs(f_grid - 0.0))],
-               target[np.argmin(np.abs(f_grid - 0.8))],
-               0, 0]  # don't care above 0.8
-
-    # Simple least-squares design
-    c = firls(N_taps - 1 + (N_taps % 2 == 0), f_bands, d_bands)
+    # Least-squares fit of the zero-phase response c0 + 2*sum(ck*cos(k*w))
+    passband_mask = f_grid <= f_edge
+    w_out = np.pi * f_grid[passband_mask]
+    K = N_taps // 2
+    A = np.column_stack([np.ones_like(w_out)] + [2 * np.cos(k * w_out) for k in range(1, K + 1)])
+    x, *_ = np.linalg.lstsq(A, target[passband_mask], rcond=None)
+    c = np.concatenate([x[:0:-1], x])  # symmetric: c[-K..K]
     return c
 
 
 c = design_cic_compensator(N_cic=3, M=8, N_taps=5)
-print("Compensator coefficients:", np.round(c, 6))
+print("Compensator coefficients:", np.round(c, 4))
 
 # Verify droop correction
-from scipy.signal import freqz
-
-# CIC response at output rate (approximate via the sinc model)
 w, H_comp = freqz(c, [1.0], worN=512)
-# At w=pi (Nyquist of output = pi/8 of input):
+# At w=pi/2 (f_out/4) and w=pi (Nyquist of output = pi/8 of input):
+quarter_idx = len(w) // 2
 nyq_idx = len(w) - 1
-print(f"Compensator gain at output Nyquist: {20*np.log10(abs(H_comp[nyq_idx])):.2f} dB")
-# Expected: approximately +11.6 dB to cancel the CIC droop
+print(f"Compensator gain at f_out/4: {20*np.log10(abs(H_comp[quarter_idx])):.2f} dB")   # ~ +2.7 dB (CIC droop there is -2.7 dB)
+print(f"Compensator gain at output Nyquist: {20*np.log10(abs(H_comp[nyq_idx])):.2f} dB")  # ~ +6 dB (full inverse would need +11.6 dB)
 ```
 
 ---
@@ -380,5 +380,5 @@ Under these conditions, if an integrator overflows by wrapping around, the comb 
 | Null frequencies | $k \times f_{s,in}/M = k \times f_{s,out}$, $k = 1, 2, \ldots$ |
 | Bit growth | $N\log_2 M = 9$ bits |
 | Required accumulator width | $16 + 9 = 25$ bits |
-| Compensation filter | 5-tap FIR at output rate, $\approx +11.6\,\text{dB}$ at Nyquist |
+| Compensation filter | 5-tap FIR at output rate, $+2.7\,\text{dB}$ at $f_{out}/4$, $\approx +6\,\text{dB}$ at Nyquist (ideal: $+11.6\,\text{dB}$) |
 | Overflow in integrators | Safe in two's complement with consistent word length |
