@@ -19,6 +19,7 @@ The structure progresses from foundational signal processing concepts through ad
 - [06 Implementation](#06-implementation)
 - [07 Quizzes](#07-quizzes)
 - [How to Use](#how-to-use)
+- [Simulating the SystemVerilog Challenges](#simulating-the-systemverilog-challenges)
 - [Related Repositories](#related-repositories)
 - [Contributing](#contributing)
 
@@ -113,6 +114,43 @@ This repository is structured as a self-contained DSP interview preparation cour
 6. **Interview Preparation**: Review quizzes 1-2 weeks before interviews. Focus on areas where you struggled in earlier sections.
 
 7. **Practical Reference**: Keep filter design and implementation techniques sections accessible during system design interview discussions.
+
+## Simulating the SystemVerilog Challenges
+
+The two RTL challenges in `06_implementation/coding_challenges/` are each a design plus a self-checking testbench in one file. Both have been simulated and pass (September 2026) and are clean in slang. The Python challenges in the same folder need Python 3 with NumPy (and Matplotlib for their plots).
+
+| Challenge | Testbench top | Passes in | Verilator 5.020 | Icarus 12 |
+|-----------|---------------|-----------|-----------------|-----------|
+| `challenge_05_fir_filter_rtl.sv` | `fir_filter_tb` | Verilator 5.020 and Icarus 12 — both forms (default, and `SYMMETRIC=1`) | ✓ | ✓ |
+| `challenge_06_fft_butterfly_rtl.sv` | `fft_butterfly_tb` | Verilator 5.020 | ✓ | ✗ named task arguments `.ar(…)` |
+
+### Tools, and why each was needed
+
+| Tool | Version used | Used for | Why it was needed |
+|------|--------------|----------|-------------------|
+| **slang** (`pip install pyslang`) | pyslang 11.0 | Legality check of both `.sv` files | A complete IEEE 1800-2017 front end: finds illegal SystemVerilog with exact line numbers. It does **not** simulate, so it cannot find functional bugs (the FIR filter compiled cleanly yet saturated every output) |
+| **Verilator** | 5.020 (Ubuntu 24.04 package, `--binary --timing --assert`) | Simulating both challenges | Free, fast, and supports everything these testbenches use (delays, `fork`, parameter overrides). No heavier simulator is needed here |
+| Icarus Verilog | 12.0 | Cross-check | Runs the FIR filter (both forms, passes); rejects the FFT testbench's named task arguments |
+
+### Commands
+
+slang (legality):
+```bash
+python3 -c "from pyslang.syntax import SyntaxTree; from pyslang.ast import Compilation
+c = Compilation(); c.addSyntaxTree(SyntaxTree.fromFile('<challenge>.sv'))
+print([str(d.code) for d in c.getAllDiagnostics() if d.isError()])"   # [] = clean
+```
+
+Verilator:
+```bash
+verilator --binary --timing --assert -Wno-fatal -Wno-lint -Wno-style -Wno-WIDTH \
+          -j 1 --top-module <tb_top> <challenge>.sv && obj_dir/V<tb_top>
+```
+(`-j 1`: parallel builds of 5.020 crash intermittently.)
+
+For the FIR filter, add `-GSYMMETRIC=1` for the second run. Icarus (FIR only): `iverilog -g2012 [-Pfir_filter_tb.SYMMETRIC=1] -s fir_filter_tb -o fir.vvp challenge_05_fir_filter_rtl.sv && vvp fir.vvp`.
+
+The full construct-by-construct comparison, with every error message, is in the [SystemVerilog_Simulators](https://github.com/BrendanJamesLynskey/SystemVerilog_Simulators) presentation.
 
 ## Related Repositories
 
