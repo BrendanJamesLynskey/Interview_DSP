@@ -117,8 +117,9 @@ This repository is structured as a self-contained DSP interview preparation cour
 ## Related Repositories
 
 - **[PhaseVocoder](https://github.com/BrendanJamesLynskey/PhaseVocoder)** — A production DSP implementation demonstrating time-stretching and pitch-shifting algorithms with phase coherence management
-- **[Interview_VHDL](../Interview_VHDL)** — VHDL-specific patterns for HDL-based DSP implementations
-- **[Interview_Verilog](../Interview_Verilog)** — SystemVerilog and Verilog RTL design for DSP hardware
+- **[Interview_VHDL](https://github.com/BrendanJamesLynskey/Interview_VHDL)** — VHDL-specific patterns for HDL-based DSP implementations
+- **[Interview_Verilog](https://github.com/BrendanJamesLynskey/Interview_Verilog)** — SystemVerilog and Verilog RTL design for DSP hardware
+- **[SystemVerilog_Simulators](https://github.com/BrendanJamesLynskey/SystemVerilog_Simulators)** — Which free simulators (Icarus, Verilator, Vivado xsim, Questa Starter) can run the RTL coding challenges here, and what each one rejects
 
 ## Contributing
 
